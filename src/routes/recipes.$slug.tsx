@@ -1,0 +1,107 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, Clock, Users } from "lucide-react";
+import { LilySays } from "@/components/lily";
+import { useRecipe } from "@/lib/db";
+
+export const Route = createFileRoute("/recipes/$slug")({
+  head: ({ params }) => ({
+    meta: [
+      { title: `${params.slug.replace(/-/g, " ")} — Cook with Lily` },
+      { name: "description", content: "A warm, affordable recipe with per-person portions from Lily." },
+      { property: "og:title", content: "A recipe from Cook with Lily" },
+      { property: "og:description", content: "Cook once, serve two portions that fit each goal." },
+    ],
+  }),
+  component: RecipePage,
+});
+
+function RecipePage() {
+  const { slug } = Route.useParams();
+  const { data: recipe, isLoading } = useRecipe(slug);
+
+  return (
+    <main className="paper min-h-screen bg-background pb-16">
+      <div className="mx-auto w-full max-w-md px-5 pt-7">
+        <Link
+          to="/today"
+          className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-caramel hover:underline"
+        >
+          <ArrowLeft className="size-4" /> Back to my day
+        </Link>
+
+        {isLoading ? (
+          <p className="mt-8 text-sm text-muted-foreground">Fetching the recipe…</p>
+        ) : !recipe ? (
+          <p className="mt-8 text-sm text-muted-foreground">That recipe isn't in Lily's book.</p>
+        ) : (
+          <>
+            <div className="mt-5 flex items-start gap-3">
+              <span className="text-4xl" aria-hidden>
+                {recipe.emoji}
+              </span>
+              <div>
+                <h1 className="font-display text-[26px] leading-tight font-semibold">{recipe.title}</h1>
+                <p className="text-[13px] text-muted-foreground">{recipe.tagline}</p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2 text-[12px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1 rounded-full bg-card px-3 py-1.5 shadow-soft">
+                <Clock className="size-3.5" /> {recipe.prep_minutes + recipe.cook_minutes} min
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-card px-3 py-1.5 shadow-soft">
+                <Users className="size-3.5" /> serves {recipe.base_servings}
+              </span>
+              <span className="rounded-full bg-card px-3 py-1.5 shadow-soft">{recipe.difficulty}</span>
+            </div>
+
+            <div className="mt-4 grid grid-cols-4 gap-2 rounded-3xl bg-butter/45 p-3 text-center">
+              {[
+                ["kcal", recipe.calories],
+                ["protein", `${recipe.protein}g`],
+                ["carbs", `${recipe.carbs}g`],
+                ["fat", `${recipe.fat}g`],
+              ].map(([label, value]) => (
+                <div key={String(label)}>
+                  <p className="font-display text-[17px] font-semibold">{value}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase">{label}</p>
+                </div>
+              ))}
+            </div>
+
+            {recipe.lily_note ? <LilySays className="mt-5">{recipe.lily_note}</LilySays> : null}
+
+            <h2 className="mt-6 mb-2 font-display text-[15px] font-semibold tracking-wide text-muted-foreground uppercase">
+              Ingredients
+            </h2>
+            <ul className="grid gap-1.5">
+              {recipe.ingredients.map((ing) => (
+                <li
+                  key={ing.name}
+                  className="flex items-center justify-between rounded-2xl bg-card px-4 py-2.5 shadow-soft"
+                >
+                  <span className="text-[13px] font-medium">{ing.name}</span>
+                  <span className="text-[12px] text-muted-foreground">{ing.amount}</span>
+                </li>
+              ))}
+            </ul>
+
+            <h2 className="mt-6 mb-2 font-display text-[15px] font-semibold tracking-wide text-muted-foreground uppercase">
+              How to cook it
+            </h2>
+            <ol className="grid gap-2.5">
+              {recipe.steps.map((step, i) => (
+                <li key={step} className="flex gap-3 rounded-2xl bg-card p-3.5 shadow-soft">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-caramel text-[12px] font-semibold text-caramel-foreground">
+                    {i + 1}
+                  </span>
+                  <p className="text-[13px] leading-relaxed">{step}</p>
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+      </div>
+    </main>
+  );
+}
