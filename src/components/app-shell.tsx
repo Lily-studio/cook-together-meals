@@ -16,20 +16,27 @@ import { LilyAvatar } from "@/components/lily";
 import { useApp } from "@/components/app-context";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+type NavItem = {
+  to: "/today" | "/week" | "/tell-lily" | "/grocery";
+  label: string;
+  icon: typeof Home;
+  center?: boolean;
+};
+
+const NAV: NavItem[] = [
   { to: "/today", label: "Today", icon: Home },
   { to: "/week", label: "Week", icon: CalendarDays },
   { to: "/tell-lily", label: "Tell Lily", icon: MessageCircleHeart, center: true },
   { to: "/grocery", label: "Shop", icon: ShoppingBasket },
-] as const;
+];
 
-const MORE = [
+const MORE: { to: "/discover" | "/favorites" | "/prep" | "/dashboard" | "/settings"; label: string; icon: typeof Home }[] = [
   { to: "/discover", label: "Discover recipes", icon: Compass },
   { to: "/favorites", label: "Favourites", icon: Heart },
   { to: "/prep", label: "Meal prep", icon: Soup },
   { to: "/dashboard", label: "Progress", icon: ChartPie },
   { to: "/settings", label: "Settings", icon: Settings },
-] as const;
+];
 
 export function AppShell({
   title,
