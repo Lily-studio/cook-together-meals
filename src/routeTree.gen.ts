@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticated/discover'
+import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authenticated/favorites'
 import { Route as AuthenticatedGroceryRouteImport } from './routes/_authenticated/grocery'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedTellLilyRouteImport } from './routes/_authenticated/tell-lily'
@@ -37,6 +38,11 @@ const AuthRoute = AuthRouteImport.update({
 const AuthenticatedDiscoverRoute = AuthenticatedDiscoverRouteImport.update({
   id: '/discover',
   path: '/discover',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFavoritesRoute = AuthenticatedFavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGroceryRoute = AuthenticatedGroceryRouteImport.update({
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/discover': typeof AuthenticatedDiscoverRoute
+  '/favorites': typeof AuthenticatedFavoritesRoute
   '/grocery': typeof AuthenticatedGroceryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/discover': typeof AuthenticatedDiscoverRoute
+  '/favorites': typeof AuthenticatedFavoritesRoute
   '/grocery': typeof AuthenticatedGroceryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/discover': typeof AuthenticatedDiscoverRoute
+  '/_authenticated/favorites': typeof AuthenticatedFavoritesRoute
   '/_authenticated/grocery': typeof AuthenticatedGroceryRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/tell-lily': typeof AuthenticatedTellLilyRoute
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/discover'
+    | '/favorites'
     | '/grocery'
     | '/onboarding'
     | '/tell-lily'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/discover'
+    | '/favorites'
     | '/grocery'
     | '/onboarding'
     | '/tell-lily'
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/discover'
+    | '/_authenticated/favorites'
     | '/_authenticated/grocery'
     | '/_authenticated/onboarding'
     | '/_authenticated/tell-lily'
@@ -177,6 +189,13 @@ declare module '@tanstack/react-router' {
       path: '/discover'
       fullPath: '/discover'
       preLoaderRoute: typeof AuthenticatedDiscoverRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/favorites': {
+      id: '/_authenticated/favorites'
+      path: '/favorites'
+      fullPath: '/favorites'
+      preLoaderRoute: typeof AuthenticatedFavoritesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/grocery': {
@@ -226,6 +245,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDiscoverRoute: typeof AuthenticatedDiscoverRoute
+  AuthenticatedFavoritesRoute: typeof AuthenticatedFavoritesRoute
   AuthenticatedGroceryRoute: typeof AuthenticatedGroceryRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedTellLilyRoute: typeof AuthenticatedTellLilyRoute
@@ -235,6 +255,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDiscoverRoute: AuthenticatedDiscoverRoute,
+  AuthenticatedFavoritesRoute: AuthenticatedFavoritesRoute,
   AuthenticatedGroceryRoute: AuthenticatedGroceryRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedTellLilyRoute: AuthenticatedTellLilyRoute,
