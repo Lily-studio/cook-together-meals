@@ -55,21 +55,39 @@ export function suggestedPortion(calorieTarget: number, othersTargets: number[])
   return Math.round(Math.min(1.6, Math.max(0.6, raw)) * 20) / 20;
 }
 
-export const SLOTS = ["breakfast", "lunch", "dinner", "snack"] as const;
+export const SLOTS = ["breakfast", "snack_am", "lunch", "snack_pm", "dinner"] as const;
 export type Slot = (typeof SLOTS)[number];
 
-export const SLOT_LABELS: Record<Slot, string> = {
+export const SLOT_LABELS: Record<string, string> = {
   breakfast: "Breakfast",
+  snack_am: "Morning snack",
   lunch: "Lunch",
+  snack_pm: "Afternoon snack",
   dinner: "Dinner",
-  snack: "Snack",
 };
 
-export const SLOT_SHARE: Record<Slot, number> = {
-  breakfast: 0.25,
-  lunch: 0.35,
-  dinner: 0.32,
-  snack: 0.08,
+export const SLOT_EMOJI: Record<string, string> = {
+  breakfast: "\u2615",
+  snack_am: "\ud83c\udf4a",
+  lunch: "\ud83e\udd57",
+  snack_pm: "\ud83c\udf75",
+  dinner: "\ud83c\udf72",
+};
+
+export const SLOT_SHARE: Record<string, number> = {
+  breakfast: 0.24,
+  snack_am: 0.08,
+  lunch: 0.32,
+  snack_pm: 0.08,
+  dinner: 0.28,
+};
+
+export const SLOT_MEAL_TYPE: Record<string, string> = {
+  breakfast: "breakfast",
+  snack_am: "snack",
+  lunch: "lunch",
+  snack_pm: "snack",
+  dinner: "dinner",
 };
 
 export function scaleMacros(
