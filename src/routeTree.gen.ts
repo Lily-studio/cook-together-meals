@@ -16,6 +16,7 @@ import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authenticated/favorites'
 import { Route as AuthenticatedGroceryRouteImport } from './routes/_authenticated/grocery'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedPrepRouteImport } from './routes/_authenticated/prep'
 import { Route as AuthenticatedTellLilyRouteImport } from './routes/_authenticated/tell-lily'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedWeekRouteImport } from './routes/_authenticated/week'
@@ -55,6 +56,11 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPrepRoute = AuthenticatedPrepRouteImport.update({
+  id: '/prep',
+  path: '/prep',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTellLilyRoute = AuthenticatedTellLilyRouteImport.update({
   id: '/tell-lily',
   path: '/tell-lily',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/grocery': typeof AuthenticatedGroceryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/prep': typeof AuthenticatedPrepRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
   '/today': typeof AuthenticatedTodayRoute
   '/week': typeof AuthenticatedWeekRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/grocery': typeof AuthenticatedGroceryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/prep': typeof AuthenticatedPrepRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
   '/today': typeof AuthenticatedTodayRoute
   '/week': typeof AuthenticatedWeekRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/_authenticated/favorites': typeof AuthenticatedFavoritesRoute
   '/_authenticated/grocery': typeof AuthenticatedGroceryRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/prep': typeof AuthenticatedPrepRoute
   '/_authenticated/tell-lily': typeof AuthenticatedTellLilyRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/week': typeof AuthenticatedWeekRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/grocery'
     | '/onboarding'
+    | '/prep'
     | '/tell-lily'
     | '/today'
     | '/week'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/grocery'
     | '/onboarding'
+    | '/prep'
     | '/tell-lily'
     | '/today'
     | '/week'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/_authenticated/favorites'
     | '/_authenticated/grocery'
     | '/_authenticated/onboarding'
+    | '/_authenticated/prep'
     | '/_authenticated/tell-lily'
     | '/_authenticated/today'
     | '/_authenticated/week'
@@ -212,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/prep': {
+      id: '/_authenticated/prep'
+      path: '/prep'
+      fullPath: '/prep'
+      preLoaderRoute: typeof AuthenticatedPrepRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tell-lily': {
       id: '/_authenticated/tell-lily'
       path: '/tell-lily'
@@ -248,6 +267,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFavoritesRoute: typeof AuthenticatedFavoritesRoute
   AuthenticatedGroceryRoute: typeof AuthenticatedGroceryRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPrepRoute: typeof AuthenticatedPrepRoute
   AuthenticatedTellLilyRoute: typeof AuthenticatedTellLilyRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedWeekRoute: typeof AuthenticatedWeekRoute
@@ -258,6 +278,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFavoritesRoute: AuthenticatedFavoritesRoute,
   AuthenticatedGroceryRoute: AuthenticatedGroceryRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPrepRoute: AuthenticatedPrepRoute,
   AuthenticatedTellLilyRoute: AuthenticatedTellLilyRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedWeekRoute: AuthenticatedWeekRoute,
