@@ -25,8 +25,8 @@ export function MealCard({
 }: {
   date: string;
   slot: string;
-  entry?: PlanEntry;
-  logs?: FoodLog[];
+  entry: PlanEntry | undefined;
+  logs?: FoodLog[] | undefined;
 }) {
   const { people, householdId } = useApp();
   const setEntry = useSetPlanEntry();
