@@ -36,7 +36,10 @@ export function MealCard({
   const [pickerOpen, setPickerOpen] = useState(false);
 
   const recipe = entry?.recipes ?? null;
-  const portions = entry?.portions ?? {};
+  // Auto-personalised portions, overridden by anything saved for this entry.
+  const portions: Record<string, number> = recipe
+    ? { ...portionsFor(people, slot, recipe), ...(entry?.portions ?? {}) }
+    : (entry?.portions ?? {});
 
   const pick = (recipeId: string, calories: number) => {
     if (!householdId) return;
