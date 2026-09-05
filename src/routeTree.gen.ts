@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedGroceryRouteImport } from './routes/_authenticated/grocery'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedTellLilyRouteImport } from './routes/_authenticated/tell-lily'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
@@ -30,6 +31,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedGroceryRoute = AuthenticatedGroceryRouteImport.update({
+  id: '/grocery',
+  path: '/grocery',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
@@ -55,6 +61,7 @@ const AuthenticatedWeekRoute = AuthenticatedWeekRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/grocery': typeof AuthenticatedGroceryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
   '/today': typeof AuthenticatedTodayRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/grocery': typeof AuthenticatedGroceryRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
   '/today': typeof AuthenticatedTodayRoute
@@ -73,6 +81,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/grocery': typeof AuthenticatedGroceryRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/tell-lily': typeof AuthenticatedTellLilyRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
@@ -80,14 +89,29 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/onboarding' | '/tell-lily' | '/today' | '/week'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/grocery'
+    | '/onboarding'
+    | '/tell-lily'
+    | '/today'
+    | '/week'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/onboarding' | '/tell-lily' | '/today' | '/week'
+  to:
+    | '/'
+    | '/auth'
+    | '/grocery'
+    | '/onboarding'
+    | '/tell-lily'
+    | '/today'
+    | '/week'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/grocery'
     | '/_authenticated/onboarding'
     | '/_authenticated/tell-lily'
     | '/_authenticated/today'
@@ -123,6 +147,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/grocery': {
+      id: '/_authenticated/grocery'
+      path: '/grocery'
+      fullPath: '/grocery'
+      preLoaderRoute: typeof AuthenticatedGroceryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/onboarding': {
       id: '/_authenticated/onboarding'
       path: '/onboarding'
@@ -155,6 +186,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedGroceryRoute: typeof AuthenticatedGroceryRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedTellLilyRoute: typeof AuthenticatedTellLilyRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
@@ -162,6 +194,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedGroceryRoute: AuthenticatedGroceryRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedTellLilyRoute: AuthenticatedTellLilyRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
