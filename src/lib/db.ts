@@ -60,6 +60,7 @@ export type PlanEntry = {
   recipe_id: string | null;
   custom_title: string | null;
   portions: Record<string, number>;
+  swaps: Record<string, { name: string; amount: string }>;
   cooked: boolean;
   recipes: Recipe | null;
 };
