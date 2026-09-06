@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Trash2 } from "lucide-react";
+import { MessageCircleHeart, Trash2 } from "lucide-react";
 import { AppShell, Card, SectionTitle } from "@/components/app-shell";
 import { accentOf, useApp } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
@@ -11,8 +11,26 @@ import { SLOTS, SLOT_LABELS, isoDate, prettyDate } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/today")({
+  head: () => ({
+    meta: [
+      { title: "Today — Cook with Lily" },
+      {
+        name: "description",
+        content:
+          "Lily already planned your day: three meals, two snacks, exact portions for each of you, and one tap to log what you ate.",
+      },
+      { property: "og:title", content: "Today — Cook with Lily" },
+      { property: "og:description", content: "Your cosy little kitchen, already planned for the day." },
+    ],
+  }),
   component: Today,
 });
+
+function greeting(name: string) {
+  const hour = new Date().getHours();
+  const part = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  return `${part}, ${name} 🌼`;
+}
 
 function Today() {
   const { people, householdId, me } = useApp();
@@ -41,12 +59,31 @@ function Today() {
   const planned = entries.filter((e) => e.recipes).length;
 
   return (
-    <AppShell title={`Hi ${me?.display_name ?? "there"}`} subtitle={prettyDate(today)}>
-      <LilySays>
+    <AppShell
+      title={greeting(me?.display_name ?? "there")}
+      subtitle={prettyDate(today)}
+      mood="welcome"
+    >
+      <LilySays mood={planned >= 4 ? "excited" : "thinking"}>
         {planned >= 4
-          ? "Your day is planned. Tap a fork when someone's eaten it."
-          : "Let's fill in the gaps — tap a plus to plan a meal."}
+          ? "Your day is already planned — open a meal for the exact quantities, and tap the fork once it's eaten."
+          : "Let's fill in the gaps — tap a plus on any meal and I'll suggest something."}
       </LilySays>
+
+      <Link
+        to="/tell-lily"
+        className="mt-4 flex items-center gap-3 rounded-3xl bg-caramel p-4 text-caramel-foreground shadow-lift transition-transform active:scale-[0.99]"
+      >
+        <span className="flex size-11 items-center justify-center rounded-2xl bg-butter/40">
+          <MessageCircleHeart className="size-6" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-[17px] font-semibold">Tell Lily what I ate</span>
+          <span className="block text-[12px] opacity-90">
+            Type it normally — she'll work out the calories
+          </span>
+        </span>
+      </Link>
 
       <SectionTitle>Today's progress</SectionTitle>
       <div className="grid gap-3">
@@ -77,7 +114,7 @@ function Today() {
         })}
       </div>
 
-      <SectionTitle>Meals today</SectionTitle>
+      <SectionTitle>Today</SectionTitle>
       <div className="grid gap-3">
         {SLOTS.map((slot) => (
           <MealCard

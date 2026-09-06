@@ -3,20 +3,36 @@ import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app-shell";
-import { useApp } from "@/components/app-context";
+import { useApp, accentOf } from "@/components/app-context";
+import { LilySays } from "@/components/lily";
 import { MealCard } from "@/components/meal-card";
 import { Button } from "@/components/ui/button";
 import { useDeletePlanEntry, usePlan, useRecipes, useSetPlanEntry } from "@/lib/db";
-import { SLOTS, dayLabel, isoDate, startOfWeek, weekDates } from "@/lib/nutrition";
+import { SLOTS, SLOT_SHARE, dayLabel, isoDate, startOfWeek, weekDates } from "@/lib/nutrition";
 import { buildWeekPlan } from "@/lib/planner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/week")({
+  head: () => ({
+    meta: [
+      { title: "My week — Cook with Lily" },
+      {
+        name: "description",
+        content:
+          "Your whole week planned: 3 meals and 2 snacks a day, one shared recipe with personalised portions for each of you.",
+      },
+      { property: "og:title", content: "My week — Cook with Lily" },
+      {
+        property: "og:description",
+        content: "One kitchen, one meal, two goals — see your plan, his plan, and the shared version.",
+      },
+    ],
+  }),
   component: WeekPage,
 });
 
 function WeekPage() {
-  const { people, householdId } = useApp();
+  const { people, householdId, me } = useApp();
   const start = useMemo(() => startOfWeek(new Date()), []);
   const dates = useMemo(() => weekDates(start), [start]);
   const from = isoDate(dates[0]!);
@@ -26,10 +42,13 @@ function WeekPage() {
   const setEntry = useSetPlanEntry();
   const deleteEntry = useDeletePlanEntry();
   const [active, setActive] = useState(() => isoDate(new Date()));
+  const [view, setView] = useState<string>("together");
   const [busy, setBusy] = useState(false);
 
   const entries = plan.data ?? [];
   const dayEntries = entries.filter((e) => e.plan_date === active);
+  const partner = people.find((p) => p.id !== me?.id);
+  const person = view === "together" ? null : people.find((p) => p.id === view) ?? null;
 
   const regenerate = async () => {
     if (!householdId || !recipes.length) return;
@@ -54,10 +73,16 @@ function WeekPage() {
     }
   };
 
+  const tabs = [
+    ...people.map((p) => ({ key: p.id, label: p.id === me?.id ? "Your plan" : `${p.display_name}'s plan` })),
+    { key: "together", label: "Together" },
+  ];
+
   return (
     <AppShell
-      title="Together this week"
-      subtitle="Cook once, serve two portions"
+      title="My week"
+      subtitle="One kitchen. One meal. Two goals."
+      mood="thinking"
       right={
         <Button
           size="sm"
@@ -90,18 +115,61 @@ function WeekPage() {
         })}
       </div>
 
-      <div className="mt-5 grid gap-3">
-        {SLOTS.map((slot) => (
-          <MealCard key={slot} date={active} slot={slot} entry={dayEntries.find((e) => e.slot === slot)} />
+      <div className="mt-4 flex gap-1.5 rounded-full bg-secondary/70 p-1">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setView(t.key)}
+            className={cn(
+              "flex-1 truncate rounded-full px-2 py-2 text-[12px] font-semibold transition-colors",
+              view === t.key ? "bg-card text-caramel shadow-soft" : "text-muted-foreground",
+            )}
+          >
+            {t.label}
+          </button>
         ))}
       </div>
 
-      <Card className="mt-5">
-        <p className="text-[13px] text-muted-foreground">
-          Portions are set from each person's calorie goal. Nudge them with the − and + buttons and Lily
-          keeps the numbers honest.
-        </p>
-      </Card>
+      {person ? (
+        <LilySays mood="cooking" className="mt-4">
+          <span className={cn("font-semibold", accentOf(person).text)}>{person.display_name}</span> eats{" "}
+          {person.calorie_target} kcal today, split across breakfast, two snacks, lunch and dinner. Tap a meal
+          to see the exact grams.
+        </LilySays>
+      ) : (
+        <LilySays mood="excited" className="mt-4">
+          You cook one meal. I give {me?.display_name ?? "you"} and {partner?.display_name ?? "your partner"}{" "}
+          different quantities of it — open a meal to see both.
+        </LilySays>
+      )}
+
+      <div className="mt-4 grid gap-3">
+        {SLOTS.map((slot) => (
+          <MealCard
+            key={slot}
+            date={active}
+            slot={slot}
+            entry={dayEntries.find((e) => e.slot === slot)}
+            onlyProfileId={person?.id}
+          />
+        ))}
+      </div>
+
+      {person ? (
+        <Card className="mt-5">
+          <p className="text-[13px] text-muted-foreground">
+            Roughly how {person.display_name}'s {person.calorie_target} kcal are spread:{" "}
+            {SLOTS.map((s) => Math.round(person.calorie_target * (SLOT_SHARE[s] ?? 0.2))).join(" · ")} kcal.
+          </p>
+        </Card>
+      ) : (
+        <Card className="mt-5">
+          <p className="text-[13px] text-muted-foreground">
+            Portions come from each person's calorie goal. Nudge them with − and + and Lily keeps the numbers
+            honest.
+          </p>
+        </Card>
+      )}
     </AppShell>
   );
 }
