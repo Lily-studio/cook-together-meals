@@ -27,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 
 type Person = {
   display_name: string;
+  goal_weight_kg: string;
   sex: string;
   age: string;
   height_cm: string;
@@ -36,14 +37,28 @@ type Person = {
   accent: string;
 };
 
-const emptyPerson = (accent: string): Person => ({
+/** Sensible starting points; everything stays editable. */
+const herDefaults = (accent: string): Person => ({
   display_name: "",
+  goal_weight_kg: "68",
   sex: "female",
-  age: "30",
-  height_cm: "168",
-  weight_kg: "65",
+  age: "29",
+  height_cm: "169",
+  weight_kg: "85",
+  activity_level: "low",
+  goal: "lose",
+  accent,
+});
+
+const hisDefaults = (accent: string): Person => ({
+  display_name: "",
+  goal_weight_kg: "",
+  sex: "male",
+  age: "29",
+  height_cm: "178",
+  weight_kg: "",
   activity_level: "moderate",
-  goal: "maintain",
+  goal: "gain",
   accent,
 });
 
@@ -72,8 +87,8 @@ function Onboarding() {
   const { data: recipes = [] } = useRecipes();
 
   const [step, setStep] = useState(0);
-  const [a, setA] = useState<Person>(emptyPerson("caramel"));
-  const [b, setB] = useState<Person>(emptyPerson("olive"));
+  const [a, setA] = useState<Person>(herDefaults("caramel"));
+  const [b, setB] = useState<Person>(hisDefaults("olive"));
   const [prefs, setPrefs] = useState<string[]>(["budget", "moroccan"]);
   const [avoid, setAvoid] = useState<string[]>([]);
   const [customAvoid, setCustomAvoid] = useState("");
@@ -122,6 +137,7 @@ function Onboarding() {
           weight_kg: toNum(a.weight_kg, 65),
           activity_level: a.activity_level,
           goal: a.goal,
+          goal_weight_kg: a.goal_weight_kg ? Number(a.goal_weight_kg) : null,
           diet_prefs: prefs,
           allergies: allAvoid,
           onboarding_complete: true,
@@ -141,6 +157,7 @@ function Onboarding() {
           weight_kg: toNum(b.weight_kg, 78),
           activity_level: b.activity_level,
           goal: b.goal,
+          goal_weight_kg: b.goal_weight_kg ? Number(b.goal_weight_kg) : null,
           diet_prefs: prefs,
           allergies: allAvoid,
           ...targetsB,
@@ -214,7 +231,8 @@ function Onboarding() {
         {step === 1 ? (
           <>
             <LilySays>
-              Now the person you cook with. Different goals are welcome — that's my speciality.
+              Now the person you cook with. Tell me his weight now and how active he is, and I'll work
+              out his own target — different goals are my speciality.
             </LilySays>
             <PersonForm person={b} onChange={setB} targets={targetsB} label="their" optional />
           </>
@@ -297,7 +315,10 @@ function Onboarding() {
           {step < 3 ? (
             <Button
               onClick={() => setStep((s) => s + 1)}
-              disabled={step === 0 && !a.display_name.trim()}
+              disabled={
+                (step === 0 && !a.display_name.trim()) ||
+                (step === 1 && !!b.display_name.trim() && !b.weight_kg.trim())
+              }
               className="h-11 flex-1 rounded-full text-[15px]"
             >
               Continue <ArrowRight className="size-4" />
@@ -395,11 +416,22 @@ function PersonForm({
           />
         </div>
         <div className="grid gap-1.5">
-          <Label>Weight (kg)</Label>
+          <Label>Weight now (kg)</Label>
           <Input
             inputMode="numeric"
             value={person.weight_kg}
             onChange={(e) => set({ weight_kg: e.target.value })}
+            placeholder="e.g. 78"
+            className="rounded-xl"
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <Label>Goal weight (kg)</Label>
+          <Input
+            inputMode="numeric"
+            value={person.goal_weight_kg}
+            onChange={(e) => set({ goal_weight_kg: e.target.value })}
+            placeholder="optional"
             className="rounded-xl"
           />
         </div>

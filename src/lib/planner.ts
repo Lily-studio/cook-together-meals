@@ -6,6 +6,8 @@ export type Restrictions = {
   needVegetarian: boolean;
   needVegan: boolean;
   budgetFirst: boolean;
+  /** Ingredients marked "sometimes" or "too pricey" — allowed, but ranked lower. */
+  demoteWords: string[];
 };
 
 export function restrictionsFor(people: Profile[]): Restrictions {
@@ -14,8 +16,18 @@ export function restrictionsFor(people: Profile[]): Restrictions {
     .map((w) => w.trim().toLowerCase())
     .filter(Boolean);
   const prefs = people.flatMap((p) => p.diet_prefs ?? []);
+  const rules = people.flatMap((p) => Object.entries(p.ingredient_rules ?? {}));
+  const never = rules
+    .filter(([, v]) => v === "never")
+    .map(([k]) => k.trim().toLowerCase())
+    .filter(Boolean);
+  const demoteWords = rules
+    .filter(([, v]) => v === "sometimes" || v === "pricey")
+    .map(([k]) => k.trim().toLowerCase())
+    .filter(Boolean);
   return {
-    avoidWords,
+    avoidWords: [...avoidWords, ...never],
+    demoteWords,
     needVegetarian: prefs.includes("vegetarian"),
     needVegan: prefs.includes("vegan"),
     budgetFirst: prefs.includes("budget"),
@@ -43,9 +55,15 @@ export function candidatesFor(recipes: Recipe[], slot: string, r: Restrictions) 
   const pool = recipes.filter((rec) => rec.meal_types.includes(mealType) && recipeAllowed(rec, r));
   const fallback = recipes.filter((rec) => recipeAllowed(rec, r));
   const list = pool.length ? pool : fallback;
-  if (!r.budgetFirst) return list;
+  const demoted = (rec: Recipe) => {
+    if (!r.demoteWords.length) return 0;
+    const hay = [rec.title, ...rec.ingredients.map((i) => i.name)].join(" ").toLowerCase();
+    return r.demoteWords.some((w) => w.length > 2 && hay.includes(w)) ? 1 : 0;
+  };
   return [...list].sort(
-    (a, b) => Number(b.tags.includes("budget")) - Number(a.tags.includes("budget")),
+    (a, b) =>
+      demoted(a) - demoted(b) ||
+      (r.budgetFirst ? Number(b.tags.includes("budget")) - Number(a.tags.includes("budget")) : 0),
   );
 }
 

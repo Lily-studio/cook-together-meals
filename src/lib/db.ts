@@ -40,6 +40,7 @@ export type Profile = {
   age: number | null;
   height_cm: number | null;
   weight_kg: number | null;
+  goal_weight_kg: number | null;
   calorie_target: number;
   protein_target: number;
   carb_target: number;
@@ -47,6 +48,7 @@ export type Profile = {
   diet_prefs: string[];
   allergies: string[];
   disliked: string[];
+  ingredient_rules: Record<string, string>;
   onboarding_complete: boolean;
 };
 
@@ -58,6 +60,7 @@ export type PlanEntry = {
   recipe_id: string | null;
   custom_title: string | null;
   portions: Record<string, number>;
+  swaps: Record<string, { name: string; amount: string }>;
   cooked: boolean;
   recipes: Recipe | null;
 };

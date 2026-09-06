@@ -179,6 +179,7 @@ export type Database = {
           portions: Json
           recipe_id: string | null
           slot: string
+          swaps: Json
         }
         Insert: {
           cooked?: boolean
@@ -190,6 +191,7 @@ export type Database = {
           portions?: Json
           recipe_id?: string | null
           slot: string
+          swaps?: Json
         }
         Update: {
           cooked?: boolean
@@ -201,6 +203,7 @@ export type Database = {
           portions?: Json
           recipe_id?: string | null
           slot?: string
+          swaps?: Json
         }
         Relationships: [
           {
@@ -233,9 +236,11 @@ export type Database = {
           display_name: string
           fat_target: number
           goal: string
+          goal_weight_kg: number | null
           height_cm: number | null
           household_id: string
           id: string
+          ingredient_rules: Json
           is_owner: boolean
           onboarding_complete: boolean
           protein_target: number
@@ -256,9 +261,11 @@ export type Database = {
           display_name?: string
           fat_target?: number
           goal?: string
+          goal_weight_kg?: number | null
           height_cm?: number | null
           household_id: string
           id: string
+          ingredient_rules?: Json
           is_owner?: boolean
           onboarding_complete?: boolean
           protein_target?: number
@@ -279,9 +286,11 @@ export type Database = {
           display_name?: string
           fat_target?: number
           goal?: string
+          goal_weight_kg?: number | null
           height_cm?: number | null
           household_id?: string
           id?: string
+          ingredient_rules?: Json
           is_owner?: boolean
           onboarding_complete?: boolean
           protein_target?: number
