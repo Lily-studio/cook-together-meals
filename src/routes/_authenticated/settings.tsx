@@ -172,7 +172,7 @@ function PersonEditor({ person }: { person: Profile }) {
         <p className="mb-1.5 text-[12px] font-medium text-muted-foreground">How active</p>
         <div className="flex flex-wrap gap-2">
           {Object.entries(ACTIVITY_LABELS).map(([key, label]) => (
-            <Chip key={key} selected={form.activity === key} onClick={() => setForm({ ...form, activity: key })}>
+            <Chip key={key} active={form.activity === key} onClick={() => setForm({ ...form, activity: key })}>
               {label}
             </Chip>
           ))}
@@ -183,7 +183,7 @@ function PersonEditor({ person }: { person: Profile }) {
         <p className="mb-1.5 text-[12px] font-medium text-muted-foreground">Goal</p>
         <div className="flex flex-wrap gap-2">
           {(Object.keys(GOAL_LABELS) as Goal[]).map((key) => (
-            <Chip key={key} selected={form.goal === key} onClick={() => setForm({ ...form, goal: key })}>
+            <Chip key={key} active={form.goal === key} onClick={() => setForm({ ...form, goal: key })}>
               {GOAL_LABELS[key]}
             </Chip>
           ))}
@@ -250,7 +250,7 @@ function PersonEditor({ person }: { person: Profile }) {
           {Object.entries(RULE_LABELS).map(([key, label]) => (
             <Chip
               key={key}
-              selected={false}
+              active={false}
               onClick={() => {
                 const value = ruleName.trim();
                 if (!value) {

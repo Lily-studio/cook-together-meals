@@ -39,7 +39,8 @@ export function computeTargets(input: TargetInput) {
   const tdee = base * (ACTIVITY_FACTORS[input.activity_level] ?? 1.55);
   const adjust =
     input.goal === "lose" ? -0.18 : input.goal === "gain" ? 0.13 : input.goal === "recomp" ? -0.07 : 0;
-  const calories = Math.round((tdee * (1 + adjust)) / 10) * 10;
+  const floor = input.sex === "female" ? 1400 : 1700; // kind, never crash-diet territory
+  const calories = Math.max(floor, Math.round((tdee * (1 + adjust)) / 10) * 10);
   const proteinPerKg = input.goal === "gain" ? 1.9 : input.goal === "lose" ? 2.0 : 1.7;
   const protein = Math.round(weight * proteinPerKg);
   const fat = Math.round((calories * 0.28) / 9);
