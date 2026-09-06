@@ -179,6 +179,7 @@ export type Database = {
           portions: Json
           recipe_id: string | null
           slot: string
+          swaps: Json
         }
         Insert: {
           cooked?: boolean
@@ -190,6 +191,7 @@ export type Database = {
           portions?: Json
           recipe_id?: string | null
           slot: string
+          swaps?: Json
         }
         Update: {
           cooked?: boolean
@@ -201,6 +203,7 @@ export type Database = {
           portions?: Json
           recipe_id?: string | null
           slot?: string
+          swaps?: Json
         }
         Relationships: [
           {
