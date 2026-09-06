@@ -13,12 +13,14 @@ export function RecipePicker({
   slot,
   onPick,
   title,
+  targetCalories,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   slot?: string;
   onPick: (recipe: Recipe) => void;
   title?: string;
+  targetCalories?: number | undefined;
 }) {
   const { people } = useApp();
   const { data: recipes = [] } = useRecipes();
@@ -29,11 +31,17 @@ export function RecipePicker({
     const r = restrictionsFor(people);
     const base = slot && onlySlot ? candidatesFor(recipes, slot, r) : recipes;
     const needle = q.trim().toLowerCase();
-    if (!needle) return base;
-    return base.filter((rec) =>
-      `${rec.title} ${rec.tagline} ${rec.tags.join(" ")}`.toLowerCase().includes(needle),
+    const filtered = needle
+      ? base.filter((rec) =>
+          `${rec.title} ${rec.tagline} ${rec.tags.join(" ")}`.toLowerCase().includes(needle),
+        )
+      : base;
+    if (!targetCalories) return filtered;
+    // Closest-calorie alternatives first, so a swap keeps the day on track.
+    return [...filtered].sort(
+      (a, b) => Math.abs(a.calories - targetCalories) - Math.abs(b.calories - targetCalories),
     );
-  }, [recipes, people, slot, onlySlot, q]);
+  }, [recipes, people, slot, onlySlot, q, targetCalories]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,7 +50,13 @@ export function RecipePicker({
           <DialogTitle className="font-display text-lg">
             {title ?? (slot ? `Choose a new ${SLOT_LABELS[slot]?.toLowerCase()}` : "Choose a recipe")}
           </DialogTitle>
+          {targetCalories ? (
+            <p className="text-[12px] text-muted-foreground">
+              Sorted to land near {targetCalories} kcal, like the meal you're replacing.
+            </p>
+          ) : null}
         </DialogHeader>
+
         <div className="px-5 pt-2">
           <div className="relative">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
