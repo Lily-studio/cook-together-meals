@@ -85,6 +85,35 @@ function Today() {
         </span>
       </Link>
 
+      <Link
+        to="/talk"
+        className="mt-2 flex items-center gap-3 rounded-3xl bg-card p-4 shadow-soft transition-colors hover:bg-butter/30"
+      >
+        <span className="flex size-11 items-center justify-center rounded-2xl bg-butter/50 text-caramel">
+          <MessagesSquare className="size-6" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-[17px] font-semibold">Talk to Lily</span>
+          <span className="block text-[12px] text-muted-foreground">
+            Missing an ingredient? Ask her for a swap
+          </span>
+        </span>
+      </Link>
+
+      {low.length > 0 ? (
+        <Card className="mt-3 bg-butter/40">
+          <p className="font-display text-[15px] font-semibold">Running low</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {low.map((i) => i.name).slice(0, 4).join(", ")}
+            {low.length > 4 ? ` and ${low.length - 4} more` : ""} —{" "}
+            <Link to="/pantry" className="font-semibold text-caramel hover:underline">
+              top up the pantry
+            </Link>
+            .
+          </p>
+        </Card>
+      ) : null}
+
       <SectionTitle>Today's progress</SectionTitle>
       <div className="grid gap-3">
         {people.map((p) => {
