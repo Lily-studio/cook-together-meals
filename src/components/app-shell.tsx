@@ -81,7 +81,6 @@ export function AppShell({
               <Link
                 key={item.to}
                 to={item.to}
-                search={item.to === "/today" ? {} : undefined}
                 className={cn(
                   "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-colors",
                   active
