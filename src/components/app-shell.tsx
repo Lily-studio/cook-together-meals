@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import {
   CalendarDays,
+  CalendarRange,
   Heart,
   Home,
   MessagesSquare,
@@ -15,7 +16,7 @@ import { useApp } from "@/components/app-context";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
-  to: "/today" | "/week" | "/grocery" | "/favorites" | "/lily" | "/pantry" | "/prep" | "/talk";
+  to: "/today" | "/week" | "/month" | "/grocery" | "/favorites" | "/lily" | "/pantry" | "/prep" | "/talk";
   label: string;
   icon?: typeof Home;
   lily?: boolean;
@@ -25,6 +26,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { to: "/today", label: "Home", icon: Home },
   { to: "/week", label: "My Week", icon: CalendarDays },
+  { to: "/month", label: "My Month", icon: CalendarRange, desktopOnly: true },
   { to: "/grocery", label: "Groceries", icon: ShoppingBasket },
   { to: "/favorites", label: "Favourites", icon: Heart },
   { to: "/lily", label: "Lily", lily: true },

@@ -140,10 +140,12 @@ export function useAddPartner() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (values: Partial<Profile> & { household_id: string }) => {
+      const id = crypto.randomUUID();
       const { error } = await db
         .from("profiles")
-        .insert([{ ...values, id: crypto.randomUUID(), is_owner: false, onboarding_complete: true }]);
+        .insert([{ ...values, id, is_owner: false, onboarding_complete: true }]);
       if (error) throw error;
+      return id;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["household-profiles"] }),
   });
@@ -404,3 +406,172 @@ export function useGroceryMutations(householdId: string | undefined, weekStart: 
 }
 
 export const thisWeekStart = () => isoDate(startOfWeek(new Date()));
+
+/* ---------------- Lily plans the month ---------------- */
+
+/**
+ * Generates and SAVES a full four-week plan (28 days × 5 eating moments)
+ * plus a shopping list for each of those weeks. This is the one action
+ * behind "Plan my month with Lily" — nothing here is a mock-up.
+ */
+export function usePlanMonth() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      householdId,
+      people,
+      recipes,
+      favouriteRecipeIds = [],
+      start,
+      seed = 0,
+      pantry = [],
+    }: {
+      householdId: string;
+      people: Profile[];
+      recipes: Recipe[];
+      favouriteRecipeIds?: string[];
+      start?: Date;
+      seed?: number;
+      pantry?: { name: string }[];
+    }) => {
+      const { generateMonth, monthDates } = await import("./month-plan");
+      const { buildGroceryList } = await import("./planner");
+
+      const first = startOfWeek(start ?? new Date());
+      const dates = monthDates(first);
+      const generated = generateMonth({ start: first, recipes, people, favouriteRecipeIds, seed });
+      if (!generated.length) throw new Error("Lily needs a few recipes before she can plan");
+
+      const from = isoDate(dates[0]!);
+      const to = isoDate(dates[27]!);
+
+      const wipe = await db
+        .from("meal_plan_entries")
+        .delete()
+        .eq("household_id", householdId)
+        .gte("plan_date", from)
+        .lte("plan_date", to);
+      if (wipe.error) throw wipe.error;
+
+      const rows = generated.map((e) => ({ ...e, household_id: householdId }));
+      for (let i = 0; i < rows.length; i += 60) {
+        const { error } = await db.from("meal_plan_entries").insert(rows.slice(i, i + 60));
+        if (error) throw error;
+      }
+
+      // Shopping list per week, built from the exact recipes and portions.
+      const byId = new Map(recipes.map((r) => [r.id, r]));
+      const haveAtHome = new Set(pantry.map((p) => p.name.trim().toLowerCase()));
+      for (let w = 0; w < 4; w++) {
+        const weekFrom = isoDate(dates[w * 7]!);
+        const weekTo = isoDate(dates[w * 7 + 6]!);
+        const weekStart = weekFrom;
+
+        const cleared = await db
+          .from("grocery_items")
+          .delete()
+          .eq("household_id", householdId)
+          .eq("week_start", weekStart)
+          .eq("manual", false);
+        if (cleared.error) throw cleared.error;
+
+        const weekEntries = generated
+          .filter((e) => e.plan_date >= weekFrom && e.plan_date <= weekTo)
+          .map((e) => ({ recipes: byId.get(e.recipe_id) ?? null, portions: e.portions }));
+        const list = buildGroceryList(weekEntries).filter(
+          (item) => !haveAtHome.has(item.name.trim().toLowerCase()),
+        );
+        if (list.length) {
+          const { error } = await db
+            .from("grocery_items")
+            .insert(list.map((i) => ({ ...i, household_id: householdId, week_start: weekStart })));
+          if (error) throw error;
+        }
+      }
+
+      return { days: 28, meals: generated.length };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["plan"] });
+      qc.invalidateQueries({ queryKey: ["grocery"] });
+    },
+  });
+}
+
+/* ---------------- meal prep batches ---------------- */
+
+export type PrepBatch = {
+  id: string;
+  household_id: string;
+  recipe_id: string | null;
+  title: string;
+  portions_total: number;
+  portions_left: number;
+  prepared_on: string;
+  best_before: string | null;
+  note: string;
+};
+
+export function usePrepBatches(householdId: string | undefined) {
+  return useQuery({
+    queryKey: ["prep-batches", householdId],
+    enabled: !!householdId,
+    queryFn: async (): Promise<PrepBatch[]> => {
+      const { data, error } = await db
+        .from("prep_batches")
+        .select("*")
+        .eq("household_id", householdId)
+        .order("prepared_on", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as PrepBatch[];
+    },
+  });
+}
+
+export function usePrepMutations(householdId: string | undefined) {
+  const qc = useQueryClient();
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["prep-batches", householdId] });
+
+  const add = useMutation({
+    mutationFn: async (batch: {
+      recipe_id: string | null;
+      title: string;
+      portions_total: number;
+      best_before?: string | null;
+      note?: string;
+    }) => {
+      const { error } = await db.from("prep_batches").insert([
+        {
+          household_id: householdId,
+          recipe_id: batch.recipe_id,
+          title: batch.title,
+          portions_total: batch.portions_total,
+          portions_left: batch.portions_total,
+          best_before: batch.best_before ?? null,
+          note: batch.note ?? "",
+        },
+      ]);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const takePortion = useMutation({
+    mutationFn: async ({ id, left }: { id: string; left: number }) => {
+      const next = Math.max(0, Math.round((left - 1) * 10) / 10);
+      const { error } = await db.from("prep_batches").update({ portions_left: next }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db.from("prep_batches").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  return { add, takePortion, remove };
+}

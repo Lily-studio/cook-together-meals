@@ -24,8 +24,8 @@ function AuthPage() {
   const { session } = useSession();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [pin, setPin] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -34,13 +34,28 @@ function AuthPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const handle = username.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (handle.length < 3) {
+      toast.error("Pick a name with at least 3 letters or numbers.");
+      return;
+    }
+    if (!/^\d{4}$/.test(pin)) {
+      toast.error("Your PIN is exactly 4 digits.");
+      return;
+    }
+    // Username + PIN, mapped to a stable hidden login behind the scenes.
+    const email = `${handle}@cookwithlily.app`;
+    const password = `lily-${handle}-${pin}`;
     setBusy(true);
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/today` },
+          options: {
+            emailRedirectTo: `${window.location.origin}/today`,
+            data: { display_name: username.trim() },
+          },
         });
         if (error) throw error;
         toast.success("Welcome! Let's set up your kitchen.");
@@ -61,40 +76,42 @@ function AuthPage() {
       <div className="mx-auto w-full max-w-md px-6 py-12">
         <LilySays size={56}>
           {mode === "signup"
-            ? "Hello! I'm Lily. Make an account and I'll plan your week."
+            ? "Hello! I'm Lily. Pick a name and a 4-digit PIN — that's all I need."
             : "Welcome back — your plan is right where you left it."}
         </LilySays>
 
         <form onSubmit={submit} className="mt-7 grid gap-3.5 rounded-3xl bg-card p-5 shadow-soft">
           <div className="grid gap-1.5">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Your name</Label>
             <Input
-              id="email"
-              type="email"
+              id="username"
               required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="lina"
               className="rounded-xl"
             />
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="pin">4-digit PIN</Label>
             <Input
-              id="password"
-              type="password"
+              id="pin"
+              inputMode="numeric"
               required
-              minLength={6}
+              maxLength={4}
               autoComplete={mode === "signup" ? "new-password" : "current-password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 6 characters"
-              className="rounded-xl"
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="••••"
+              className="rounded-xl tracking-[0.5em]"
             />
+            <p className="text-[11px] text-muted-foreground">
+              No email, no password to remember. Keep your PIN somewhere safe.
+            </p>
           </div>
           <Button type="submit" disabled={busy} className="mt-1 h-11 rounded-full text-[15px]">
-            {busy ? "One moment…" : mode === "signup" ? "Create my kitchen" : "Sign in"}
+            {busy ? "One moment…" : mode === "signup" ? "Create my kitchen" : "Let me in"}
           </Button>
           <button
             type="button"
