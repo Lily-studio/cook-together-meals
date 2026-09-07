@@ -26,6 +26,7 @@ import {
 import { SLOT_EMOJI, SLOT_LABELS, scaleMacros } from "@/lib/nutrition";
 import { portionsFor } from "@/lib/planner";
 import { scaleAmount, suggestSwaps } from "@/lib/portions";
+import { ingredientsUsed, usePantryMutations } from "@/lib/pantry";
 import { cn } from "@/lib/utils";
 
 export function MealCard({
