@@ -1,16 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Sparkles } from "lucide-react";
-import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app-shell";
 import { PlanMonthButton } from "@/components/plan-month-button";
 import { useApp, accentOf } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
 import { MealCard } from "@/components/meal-card";
-import { Button } from "@/components/ui/button";
-import { useDeletePlanEntry, usePlan, useRecipes, useSetPlanEntry } from "@/lib/db";
+import { usePlan } from "@/lib/db";
 import { SLOTS, SLOT_SHARE, dayLabel, isoDate, startOfWeek, weekDates } from "@/lib/nutrition";
-import { buildWeekPlan } from "@/lib/planner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/week")({
@@ -39,40 +35,13 @@ function WeekPage() {
   const from = isoDate(dates[0]!);
   const to = isoDate(dates[6]!);
   const plan = usePlan(householdId, from, to);
-  const { data: recipes = [] } = useRecipes();
-  const setEntry = useSetPlanEntry();
-  const deleteEntry = useDeletePlanEntry();
   const [active, setActive] = useState(() => isoDate(new Date()));
   const [view, setView] = useState<string>("together");
-  const [busy, setBusy] = useState(false);
 
   const entries = plan.data ?? [];
   const dayEntries = entries.filter((e) => e.plan_date === active);
   const partner = people.find((p) => p.id !== me?.id);
   const person = view === "together" ? null : people.find((p) => p.id === view) ?? null;
-
-  const regenerate = async () => {
-    if (!householdId || !recipes.length) return;
-    setBusy(true);
-    try {
-      for (const entry of entries) await deleteEntry.mutateAsync(entry.id);
-      const fresh = buildWeekPlan(dates, recipes, people, Math.floor(Math.random() * 5) + 1);
-      for (const entry of fresh) {
-        await setEntry.mutateAsync({
-          household_id: householdId,
-          plan_date: entry.plan_date,
-          slot: entry.slot,
-          recipe_id: entry.recipe_id,
-          portions: entry.portions,
-        });
-      }
-      toast.success("A fresh week, cooked up by Lily");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Couldn't rebuild the week");
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const tabs = [
     ...people.map((p) => ({ key: p.id, label: p.id === me?.id ? "Your plan" : `${p.display_name}'s plan` })),
@@ -84,16 +53,7 @@ function WeekPage() {
       title="My week"
       subtitle="One kitchen. One meal. Two goals."
       mood="thinking"
-      right={
-        <Button
-          size="sm"
-          onClick={regenerate}
-          disabled={busy}
-          className="h-9 rounded-full px-3 text-[12px]"
-        >
-          <Sparkles className="size-3.5" /> {busy ? "Planning…" : "Refill"}
-        </Button>
-      }
+      right={<PlanMonthButton size="sm" label="Replan" reshuffle className="h-9 px-3 text-[12px]" />}
     >
       <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
         {dates.map((d) => {
