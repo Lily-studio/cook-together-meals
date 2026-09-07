@@ -20,6 +20,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPantryRouteImport } from './routes/_authenticated/pantry'
 import { Route as AuthenticatedPrepRouteImport } from './routes/_authenticated/prep'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedTalkRouteImport } from './routes/_authenticated/talk'
 import { Route as AuthenticatedTellLilyRouteImport } from './routes/_authenticated/tell-lily'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedWeekRouteImport } from './routes/_authenticated/week'
@@ -79,6 +80,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTalkRoute = AuthenticatedTalkRouteImport.update({
+  id: '/talk',
+  path: '/talk',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTellLilyRoute = AuthenticatedTellLilyRouteImport.update({
   id: '/tell-lily',
   path: '/tell-lily',
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/pantry': typeof AuthenticatedPantryRoute
   '/prep': typeof AuthenticatedPrepRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/talk': typeof AuthenticatedTalkRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
   '/today': typeof AuthenticatedTodayRoute
   '/week': typeof AuthenticatedWeekRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/pantry': typeof AuthenticatedPantryRoute
   '/prep': typeof AuthenticatedPrepRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/talk': typeof AuthenticatedTalkRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
   '/today': typeof AuthenticatedTodayRoute
   '/week': typeof AuthenticatedWeekRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/_authenticated/pantry': typeof AuthenticatedPantryRoute
   '/_authenticated/prep': typeof AuthenticatedPrepRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/talk': typeof AuthenticatedTalkRoute
   '/_authenticated/tell-lily': typeof AuthenticatedTellLilyRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/week': typeof AuthenticatedWeekRoute
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/pantry'
     | '/prep'
     | '/settings'
+    | '/talk'
     | '/tell-lily'
     | '/today'
     | '/week'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/pantry'
     | '/prep'
     | '/settings'
+    | '/talk'
     | '/tell-lily'
     | '/today'
     | '/week'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pantry'
     | '/_authenticated/prep'
     | '/_authenticated/settings'
+    | '/_authenticated/talk'
     | '/_authenticated/tell-lily'
     | '/_authenticated/today'
     | '/_authenticated/week'
@@ -288,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/talk': {
+      id: '/_authenticated/talk'
+      path: '/talk'
+      fullPath: '/talk'
+      preLoaderRoute: typeof AuthenticatedTalkRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tell-lily': {
       id: '/_authenticated/tell-lily'
       path: '/tell-lily'
@@ -328,6 +347,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPantryRoute: typeof AuthenticatedPantryRoute
   AuthenticatedPrepRoute: typeof AuthenticatedPrepRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTalkRoute: typeof AuthenticatedTalkRoute
   AuthenticatedTellLilyRoute: typeof AuthenticatedTellLilyRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
   AuthenticatedWeekRoute: typeof AuthenticatedWeekRoute
@@ -342,6 +362,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPantryRoute: AuthenticatedPantryRoute,
   AuthenticatedPrepRoute: AuthenticatedPrepRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTalkRoute: AuthenticatedTalkRoute,
   AuthenticatedTellLilyRoute: AuthenticatedTellLilyRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
   AuthenticatedWeekRoute: AuthenticatedWeekRoute,
