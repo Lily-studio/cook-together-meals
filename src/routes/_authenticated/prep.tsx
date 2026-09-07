@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/prep")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Prep;
+  component: Prep,
 });
 
 function addDays(d: Date, days: number) {
