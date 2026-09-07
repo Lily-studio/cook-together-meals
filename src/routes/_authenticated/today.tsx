@@ -7,6 +7,7 @@ import { LilySays } from "@/components/lily";
 import { CalorieRing, MacroBar } from "@/components/macro";
 import { MealCard } from "@/components/meal-card";
 import { useDeleteLog, useLogs, usePlan } from "@/lib/db";
+import { lowStock, usePantry } from "@/lib/pantry";
 import { SLOTS, SLOT_LABELS, isoDate, prettyDate } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
