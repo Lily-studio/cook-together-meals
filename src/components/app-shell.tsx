@@ -4,6 +4,7 @@ import {
   CalendarDays,
   Heart,
   Home,
+  MessagesSquare,
   Package,
   ShoppingBasket,
   Sparkles,
