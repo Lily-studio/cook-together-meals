@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { CalendarRange, RefreshCw, Trash2 } from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app-shell";
 import { useApp } from "@/components/app-context";
@@ -8,9 +8,10 @@ import { LilySays } from "@/components/lily";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { useGrocery, useGroceryMutations, usePlan, useRecipes, useSetPlanEntry } from "@/lib/db";
+import { PlanMonthButton } from "@/components/plan-month-button";
+import { useGrocery, useGroceryMutations, usePlan } from "@/lib/db";
 import { isoDate, startOfWeek, weekDates } from "@/lib/nutrition";
-import { GROCERY_ORDER, buildGroceryList, buildWeekPlan } from "@/lib/planner";
+import { GROCERY_ORDER, buildGroceryList } from "@/lib/planner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/grocery")({
@@ -61,8 +62,6 @@ function GroceryPage() {
   const monthPlan = usePlan(householdId, monthFrom, monthTo);
   const items = useGrocery(householdId, weekStart);
   const { add, toggle, remove, clear } = useGroceryMutations(householdId, weekStart);
-  const { data: recipes = [] } = useRecipes();
-  const setPlanEntry = useSetPlanEntry();
   const [manual, setManual] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -98,33 +97,6 @@ function GroceryPage() {
     }
   };
 
-  const planMonth = async () => {
-    if (!householdId || !recipes.length) return;
-    setBusy(true);
-    try {
-      let added = 0;
-      for (let i = 0; i < weeks.length; i++) {
-        if (entriesForWeek(i).length) continue;
-        const fresh = buildWeekPlan(weeks[i]!, recipes, people, i + 1);
-        for (const entry of fresh) {
-          await setPlanEntry.mutateAsync({
-            household_id: householdId,
-            plan_date: entry.plan_date,
-            slot: entry.slot,
-            recipe_id: entry.recipe_id,
-            portions: entry.portions,
-          });
-          added++;
-        }
-      }
-      toast.success(added ? "The whole month is planned" : "Your month was already planned");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Couldn't plan the month");
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const done = list.filter((i) => i.checked).length;
   const monthLabel = weeks[0]![0]!.toLocaleDateString("en-GB", { month: "long" });
 
@@ -135,9 +107,7 @@ function GroceryPage() {
       mood="shopping"
       right={
         tab === "month" ? (
-          <Button size="sm" onClick={planMonth} disabled={busy} className="h-9 rounded-full px-3 text-[12px]">
-            <CalendarRange className="size-3.5" /> {busy ? "…" : "Plan month"}
-          </Button>
+          <PlanMonthButton size="sm" label="Replan month" reshuffle className="h-9 px-3 text-[12px]" />
         ) : (
           <Button size="sm" onClick={rebuild} disabled={busy} className="h-9 rounded-full px-3 text-[12px]">
             <RefreshCw className="size-3.5" /> {busy ? "…" : "Rebuild"}
@@ -177,7 +147,7 @@ function GroceryPage() {
           <LilySays mood="shopping" className="mt-4">
             {monthList.length
               ? `Everything for ${monthLabel} added up — ${monthList.length} things, duplicates combined so you buy once.`
-              : "Tap “Plan month” and I'll fill four weeks, then add all the shopping up for you."}
+              : "Tap “Replan month” and I'll fill four weeks, then add all the shopping up for you."}
           </LilySays>
           <div className="mt-4 grid gap-4">
             {monthGrouped.map((group) => (
