@@ -8,17 +8,13 @@ import { ACCENTS, useApp } from "@/components/app-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAddPartner, useRecipes, useSetPlanEntry, useUpdateProfile } from "@/lib/db";
+import { useAddPartner, usePlanMonth, useRecipes, useUpdateProfile } from "@/lib/db";
 import {
   ACTIVITY_LABELS,
   GOAL_LABELS,
   computeTargets,
-  isoDate,
-  startOfWeek,
-  weekDates,
   type Goal,
 } from "@/lib/nutrition";
-import { buildWeekPlan } from "@/lib/planner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -145,9 +141,10 @@ function Onboarding() {
         },
       });
 
-      const partnerExists = people.some((p) => !p.is_owner);
-      if (!partnerExists && b.display_name.trim()) {
-        await addPartner.mutateAsync({
+      const existingPartner = people.find((p) => !p.is_owner);
+      let partnerId: string | null = existingPartner?.id ?? null;
+      if (!existingPartner && b.display_name.trim()) {
+        partnerId = await addPartner.mutateAsync({
           household_id: householdId,
           display_name: b.display_name.trim(),
           accent: b.accent,
@@ -164,38 +161,39 @@ function Onboarding() {
         });
       }
 
-      // First week plan, using the freshly chosen goals.
+      // Lily plans the whole month right now, with the freshly saved goals.
+      const meForPlan = {
+        ...me,
+        ...targetsA,
+        allergies: allAvoid,
+        diet_prefs: prefs,
+        goal: a.goal,
+      };
       const peopleForPlan = [
-        { ...me, id: me.id, ...targetsA, allergies: allAvoid, diet_prefs: prefs },
-        ...(b.display_name.trim()
+        meForPlan,
+        ...(partnerId
           ? [
               {
-                ...me,
-                id: "partner",
-                display_name: b.display_name,
+                ...meForPlan,
+                id: partnerId,
+                display_name: b.display_name.trim(),
+                sex: b.sex,
+                goal: b.goal,
                 ...targetsB,
-                allergies: allAvoid,
-                diet_prefs: prefs,
               },
             ]
-          : []),
+          : people.filter((p) => p.id !== me.id)),
       ];
+
       if (recipes.length) {
-        const dates = weekDates(startOfWeek(new Date()));
-        const entries = buildWeekPlan(dates, recipes, peopleForPlan, 0);
-        for (const entry of entries) {
-          await setPlanEntry.mutateAsync({
-            household_id: householdId,
-            plan_date: entry.plan_date,
-            slot: entry.slot,
-            recipe_id: entry.recipe_id,
-            portions: {},
-          });
-        }
-        void isoDate;
+        await planMonth.mutateAsync({
+          householdId,
+          people: peopleForPlan,
+          recipes,
+        });
       }
 
-      toast.success("Your kitchen is ready!");
+      toast.success("Your month is planned 🌼");
       navigate({ to: "/today" });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Couldn't save that");
@@ -291,7 +289,8 @@ function Onboarding() {
         {step === 3 ? (
           <>
             <LilySays>
-              Here's the plan: I'll fill your whole week with 3 meals and 2 snacks a day.
+              One tap and I'll plan the next four weeks — 3 meals and 2 snacks a day, exact quantities
+              for each of you, and the shopping list to match.
             </LilySays>
             <div className="mt-4 grid gap-3">
               <SummaryCard name={a.display_name || "You"} goal={a.goal} targets={targetsA} accent={a.accent} />
@@ -325,7 +324,8 @@ function Onboarding() {
             </Button>
           ) : (
             <Button onClick={finish} disabled={saving} className="h-11 flex-1 rounded-full text-[15px]">
-              {saving ? "Filling your week…" : "Build my week"} <Check className="size-4" />
+              {saving ? "Lily is planning your month…" : "✨ Plan my month with Lily"}{" "}
+              <Check className="size-4" />
             </Button>
           )}
         </div>
