@@ -42,6 +42,7 @@ export function MealCard({
   onlyProfileId?: string | undefined;
 }) {
   const { people, householdId } = useApp();
+  const pantry = usePantryMutations(householdId);
   const setEntry = useSetPlanEntry();
   const updateEntry = useUpdatePlanEntry();
   const deleteEntry = useDeletePlanEntry();
