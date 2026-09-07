@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { MessageCircleHeart, Trash2 } from "lucide-react";
+import { MessageCircleHeart, MessagesSquare, Trash2 } from "lucide-react";
 import { AppShell, Card, SectionTitle } from "@/components/app-shell";
 import { accentOf, useApp } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
