@@ -1,17 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { MessageCircleHeart, MessagesSquare, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight, MessageCircleHeart, MessagesSquare, Trash2 } from "lucide-react";
 import { AppShell, Card, SectionTitle } from "@/components/app-shell";
 import { accentOf, useApp } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
 import { CalorieRing, MacroBar } from "@/components/macro";
 import { MealCard } from "@/components/meal-card";
-import { useDeleteLog, useLogs, usePlan } from "@/lib/db";
+import { PlanMonthButton } from "@/components/plan-month-button";
+import { useDeleteLog, useLogs, usePlan, usePrepBatches, usePrepMutations } from "@/lib/db";
 import { lowStock, usePantry } from "@/lib/pantry";
-import { SLOTS, SLOT_LABELS, isoDate, prettyDate } from "@/lib/nutrition";
+import { SLOTS, SLOT_LABELS, dayLabel, isoDate, prettyDate } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/today")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    date: typeof search["date"] === "string" ? (search["date"] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Today — Cook with Lily" },
@@ -33,14 +37,30 @@ function greeting(name: string) {
   return `${part}, ${name} 🌼`;
 }
 
+function addDays(iso: string, days: number) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const date = new Date(y!, (m ?? 1) - 1, d ?? 1);
+  date.setDate(date.getDate() + days);
+  return date;
+}
+
 function Today() {
   const { people, householdId, me } = useApp();
-  const today = useMemo(() => new Date(), []);
-  const date = isoDate(today);
+  const search = Route.useSearch();
+  const todayIso = useMemo(() => isoDate(new Date()), []);
+  const [date, setDate] = useState(search.date ?? todayIso);
+  const viewed = useMemo(() => addDays(date, 0), [date]);
+  const isToday = date === todayIso;
+  const strip = useMemo(
+    () => Array.from({ length: 10 }, (_, i) => addDays(todayIso, i - 1)),
+    [todayIso],
+  );
   const plan = usePlan(householdId, date, date);
   const logs = useLogs(householdId, date, date);
   const deleteLog = useDeleteLog();
   const pantry = usePantry(householdId);
+  const prep = usePrepBatches(householdId);
+  const prepMut = usePrepMutations(householdId);
 
   const entries = plan.data ?? [];
   const dayLogs = logs.data ?? [];
@@ -59,19 +79,100 @@ function Today() {
       );
 
   const planned = entries.filter((e) => e.recipes).length;
+  const plannedIds = entries.map((e) => e.recipe_id);
+  const readyFromPrep = (prep.data ?? []).filter(
+    (b) => b.portions_left > 0 && b.recipe_id && plannedIds.includes(b.recipe_id),
+  );
   const low = lowStock(pantry.data ?? []);
 
   return (
     <AppShell
-      title={greeting(me?.display_name ?? "there")}
-      subtitle={prettyDate(today)}
+      title={isToday ? greeting(me?.display_name ?? "there") : prettyDate(viewed)}
+      subtitle={isToday ? prettyDate(viewed) : "Lily already planned this day"}
       mood="welcome"
+      right={
+        <Link
+          to="/month"
+          className="flex items-center gap-1.5 rounded-full bg-card px-3 py-2 text-[12px] font-semibold text-caramel shadow-soft"
+        >
+          <CalendarDays className="size-3.5" /> My month
+        </Link>
+      }
     >
+      <div className="mb-4 flex items-center gap-2">
+        <button
+          onClick={() => setDate(isoDate(addDays(date, -1)))}
+          aria-label="Previous day"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-caramel shadow-soft"
+        >
+          <ChevronLeft className="size-4" />
+        </button>
+        <div className="-mx-1 flex flex-1 gap-1.5 overflow-x-auto px-1">
+          {strip.map((d) => {
+            const iso = isoDate(d);
+            return (
+              <button
+                key={iso}
+                onClick={() => setDate(iso)}
+                className={cn(
+                  "flex w-12 shrink-0 flex-col items-center rounded-2xl py-2 transition-colors",
+                  iso === date
+                    ? "bg-caramel text-caramel-foreground"
+                    : "bg-card text-muted-foreground shadow-soft",
+                )}
+              >
+                <span className="text-[10px] font-semibold uppercase">
+                  {iso === todayIso ? "Today" : dayLabel(d)}
+                </span>
+                <span className="font-display text-base leading-none font-semibold">{d.getDate()}</span>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => setDate(isoDate(addDays(date, 1)))}
+          aria-label="Next day"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-card text-caramel shadow-soft"
+        >
+          <ChevronRight className="size-4" />
+        </button>
+      </div>
       <LilySays mood={planned >= 4 ? "excited" : "thinking"}>
         {planned >= 4
-          ? "Your day is already planned — open a meal for the exact quantities, and tap the fork once it's eaten."
-          : "Let's fill in the gaps — tap a plus on any meal and I'll suggest something."}
+          ? "It's all planned — open a meal for the exact quantities, and tap the fork once it's eaten."
+          : "I haven't planned this day yet. One tap and I'll fill four whole weeks for you."}
       </LilySays>
+
+      {planned === 0 ? (
+        <Card className="mt-4 text-center">
+          <p className="font-display text-[17px] font-semibold">Nothing planned here yet</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            I'll write out four weeks of meals, portions for each of you, and the shopping list.
+          </p>
+          <PlanMonthButton className="mt-3 h-11 w-full text-[15px]" />
+        </Card>
+      ) : null}
+
+      {readyFromPrep.length ? (
+        <Card className="mt-4 bg-olive/10">
+          <p className="text-[13px]">
+            <span className="font-semibold text-olive">Already prepared 🌼</span> — {readyFromPrep[0]!.title} is
+            in the fridge, {readyFromPrep[0]!.portions_left} portion
+            {readyFromPrep[0]!.portions_left === 1 ? "" : "s"} left.{" "}
+            <button
+              onClick={() =>
+                prepMut.takePortion.mutate({
+                  id: readyFromPrep[0]!.id,
+                  left: readyFromPrep[0]!.portions_left,
+                })
+              }
+              className="font-semibold text-caramel hover:underline"
+            >
+              Take one portion
+            </button>
+          </p>
+        </Card>
+      ) : null}
 
       <Link
         to="/tell-lily"
@@ -117,7 +218,7 @@ function Today() {
         </Card>
       ) : null}
 
-      <SectionTitle>Today's progress</SectionTitle>
+      <SectionTitle>{isToday ? "Today's progress" : "That day's intake"}</SectionTitle>
       <div className="grid gap-3">
         {people.map((p) => {
           const t = totalsFor(p.id);
@@ -146,7 +247,7 @@ function Today() {
         })}
       </div>
 
-      <SectionTitle>Today</SectionTitle>
+      <SectionTitle>{isToday ? "Today" : dayLabel(viewed) + "'s plan"}</SectionTitle>
       <div className="grid gap-3">
         {SLOTS.map((slot) => (
           <MealCard
@@ -159,7 +260,7 @@ function Today() {
         ))}
       </div>
 
-      <SectionTitle>Eaten today</SectionTitle>
+      <SectionTitle>{isToday ? "Eaten today" : "Logged that day"}</SectionTitle>
       {dayLogs.length === 0 ? (
         <Card>
           <p className="text-[13px] text-muted-foreground">
