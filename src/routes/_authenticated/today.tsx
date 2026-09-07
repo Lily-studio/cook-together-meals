@@ -57,6 +57,7 @@ function Today() {
       );
 
   const planned = entries.filter((e) => e.recipes).length;
+  const low = lowStock(pantry.data ?? []);
 
   return (
     <AppShell
