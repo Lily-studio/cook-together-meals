@@ -17,6 +17,7 @@ import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedGroceryRouteImport } from './routes/_authenticated/grocery'
 import { Route as AuthenticatedLilyRouteImport } from './routes/_authenticated/lily'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedPantryRouteImport } from './routes/_authenticated/pantry'
 import { Route as AuthenticatedPrepRouteImport } from './routes/_authenticated/prep'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTellLilyRouteImport } from './routes/_authenticated/tell-lily'
@@ -63,6 +64,11 @@ const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPantryRoute = AuthenticatedPantryRouteImport.update({
+  id: '/pantry',
+  path: '/pantry',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPrepRoute = AuthenticatedPrepRouteImport.update({
   id: '/prep',
   path: '/prep',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/grocery': typeof AuthenticatedGroceryRoute
   '/lily': typeof AuthenticatedLilyRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pantry': typeof AuthenticatedPantryRoute
   '/prep': typeof AuthenticatedPrepRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/grocery': typeof AuthenticatedGroceryRoute
   '/lily': typeof AuthenticatedLilyRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/pantry': typeof AuthenticatedPantryRoute
   '/prep': typeof AuthenticatedPrepRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tell-lily': typeof AuthenticatedTellLilyRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/_authenticated/grocery': typeof AuthenticatedGroceryRoute
   '/_authenticated/lily': typeof AuthenticatedLilyRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/pantry': typeof AuthenticatedPantryRoute
   '/_authenticated/prep': typeof AuthenticatedPrepRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tell-lily': typeof AuthenticatedTellLilyRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/grocery'
     | '/lily'
     | '/onboarding'
+    | '/pantry'
     | '/prep'
     | '/settings'
     | '/tell-lily'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/grocery'
     | '/lily'
     | '/onboarding'
+    | '/pantry'
     | '/prep'
     | '/settings'
     | '/tell-lily'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/_authenticated/grocery'
     | '/_authenticated/lily'
     | '/_authenticated/onboarding'
+    | '/_authenticated/pantry'
     | '/_authenticated/prep'
     | '/_authenticated/settings'
     | '/_authenticated/tell-lily'
@@ -255,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pantry': {
+      id: '/_authenticated/pantry'
+      path: '/pantry'
+      fullPath: '/pantry'
+      preLoaderRoute: typeof AuthenticatedPantryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/prep': {
       id: '/_authenticated/prep'
       path: '/prep'
@@ -306,6 +325,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGroceryRoute: typeof AuthenticatedGroceryRoute
   AuthenticatedLilyRoute: typeof AuthenticatedLilyRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPantryRoute: typeof AuthenticatedPantryRoute
   AuthenticatedPrepRoute: typeof AuthenticatedPrepRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTellLilyRoute: typeof AuthenticatedTellLilyRoute
@@ -319,6 +339,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGroceryRoute: AuthenticatedGroceryRoute,
   AuthenticatedLilyRoute: AuthenticatedLilyRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPantryRoute: AuthenticatedPantryRoute,
   AuthenticatedPrepRoute: AuthenticatedPrepRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTellLilyRoute: AuthenticatedTellLilyRoute,
