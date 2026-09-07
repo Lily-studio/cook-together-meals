@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app-shell";
+import { PlanMonthButton } from "@/components/plan-month-button";
 import { useApp, accentOf } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
 import { MealCard } from "@/components/meal-card";
