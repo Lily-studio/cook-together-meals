@@ -53,7 +53,7 @@ function Alive({ children, className }: { children: React.ReactNode; className?:
       {children}
       <span
         aria-hidden
-        className="animate-lily-blink pointer-events-none absolute inset-x-0 top-[26%] h-[10%] rounded-full bg-cocoa/25"
+        className="animate-lily-blink pointer-events-none absolute inset-x-0 top-[26%] h-[10%] rounded-full"
         style={{ background: "linear-gradient(oklch(0.31 0.035 55 / 35%), transparent)" }}
       />
     </span>
