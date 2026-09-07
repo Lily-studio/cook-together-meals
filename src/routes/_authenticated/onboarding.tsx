@@ -79,7 +79,7 @@ function Onboarding() {
   const navigate = useNavigate();
   const updateProfile = useUpdateProfile();
   const addPartner = useAddPartner();
-  const setPlanEntry = useSetPlanEntry();
+  const planMonth = usePlanMonth();
   const { data: recipes = [] } = useRecipes();
 
   const [step, setStep] = useState(0);
