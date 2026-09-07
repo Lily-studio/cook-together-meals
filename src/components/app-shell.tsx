@@ -14,7 +14,7 @@ import { useApp } from "@/components/app-context";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
-  to: "/today" | "/week" | "/grocery" | "/favorites" | "/lily" | "/pantry" | "/prep";
+  to: "/today" | "/week" | "/grocery" | "/favorites" | "/lily" | "/pantry" | "/prep" | "/talk";
   label: string;
   icon?: typeof Home;
   lily?: boolean;
@@ -27,6 +27,7 @@ const NAV: NavItem[] = [
   { to: "/grocery", label: "Groceries", icon: ShoppingBasket },
   { to: "/favorites", label: "Favourites", icon: Heart },
   { to: "/lily", label: "Lily", lily: true },
+  { to: "/talk", label: "Talk to Lily", icon: MessagesSquare, desktopOnly: true },
   { to: "/pantry", label: "My Pantry", icon: Package, desktopOnly: true },
   { to: "/prep", label: "Prep ahead", icon: Sparkles, desktopOnly: true },
 ];
