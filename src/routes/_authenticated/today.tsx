@@ -13,9 +13,8 @@ import { SLOTS, SLOT_LABELS, dayLabel, isoDate, prettyDate } from "@/lib/nutriti
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/today")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    date: typeof search["date"] === "string" ? (search["date"] as string) : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { date?: string } =>
+    typeof search["date"] === "string" ? { date: search["date"] } : {},
   head: () => ({
     meta: [
       { title: "Today — Cook with Lily" },
