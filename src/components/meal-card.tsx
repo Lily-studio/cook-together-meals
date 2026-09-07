@@ -83,7 +83,18 @@ export function MealCard({
         source: "plan",
         ...macros,
       },
-      { onSuccess: () => toast.success("Logged — nice one!") },
+      {
+        onSuccess: () => {
+          // Take what this portion actually used out of the pantry.
+          const used = ingredientsUsed(recipe, portions[profileId] ?? 1, swaps);
+          pantry.consume.mutate(used, {
+            onSuccess: (count) =>
+              toast.success(
+                count > 0 ? "Logged — pantry updated 🌼" : "Logged — nice one!",
+              ),
+          });
+        },
+      },
     );
   };
 
