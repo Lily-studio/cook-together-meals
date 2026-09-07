@@ -1,0 +1,115 @@
+DELETE FROM public.favorites WHERE recipe_id IN (SELECT id FROM public.recipes WHERE slug IN ('lily-oat-bowl','avocado-date-smoothie'));
+DELETE FROM public.meal_plan_entries WHERE recipe_id IN (SELECT id FROM public.recipes WHERE slug IN ('lily-oat-bowl','avocado-date-smoothie'));
+DELETE FROM public.recipes WHERE slug IN ('lily-oat-bowl','avocado-date-smoothie');
+
+UPDATE public.recipes
+SET steps = '["Soak the dried fava beans overnight, then simmer with garlic until completely soft, about 45 minutes.","Mash the beans hard with a fork or potato masher until creamy — no blender needed.","Loosen with a little cooking water, then stir in olive oil, cumin and salt.","Serve hot with khobz and a pinch of paprika."]'::jsonb
+WHERE slug = 'bessara';
+
+CREATE TABLE public.prep_batches (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  household_id uuid NOT NULL REFERENCES public.households(id) ON DELETE CASCADE,
+  recipe_id uuid REFERENCES public.recipes(id) ON DELETE SET NULL,
+  title text NOT NULL,
+  portions_total numeric NOT NULL DEFAULT 2,
+  portions_left numeric NOT NULL DEFAULT 2,
+  prepared_on date NOT NULL DEFAULT CURRENT_DATE,
+  best_before date,
+  note text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.prep_batches TO authenticated;
+GRANT ALL ON public.prep_batches TO service_role;
+ALTER TABLE public.prep_batches ENABLE ROW LEVEL SECURITY;
+CREATE POLICY prep_all ON public.prep_batches FOR ALL TO authenticated
+  USING (household_id = public.current_household())
+  WITH CHECK (household_id = public.current_household());
+CREATE TRIGGER prep_touch BEFORE UPDATE ON public.prep_batches
+  FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+
+INSERT INTO public.recipes (slug,title,tagline,cuisine,meal_types,emoji,base_servings,prep_minutes,cook_minutes,difficulty,ingredients,steps,calories,protein,carbs,fat,fiber,tags,prep_friendly,lily_note) VALUES
+('eggs-khobz-tomato','Eggs, Khobz & Warm Tomatoes','Two soft eggs, olive-oil tomatoes and bread','Moroccan','{breakfast}','🍳',1,5,8,'easy',
+ '[{"name":"Eggs","amount":"2 pc","category":"Eggs & dairy"},{"name":"Tomato","amount":"120 g","category":"Vegetables"},{"name":"Khobz bread","amount":"70 g","category":"Grains & bread"},{"name":"Olive oil","amount":"8 g","category":"Pantry"},{"name":"Cumin","amount":"1 g","category":"Herbs & spices"}]'::jsonb,
+ '["Warm the olive oil in a small pan and soften the chopped tomato with cumin and salt, 4 minutes.","Crack in the eggs, cover and cook 3-4 minutes until the whites set.","Serve straight from the pan with warm khobz."]'::jsonb,
+ 380,24,30,18,3,'{budget,quick,high_protein}',false,'My everyday breakfast — cheap, fast and properly filling.'),
+('baghrir-honey','Baghrir with Honey & Butter','Thousand-hole semolina pancakes','Moroccan','{breakfast,snack}','🥞',2,10,12,'easy',
+ '[{"name":"Fine semolina","amount":"150 g","category":"Grains & bread"},{"name":"Flour","amount":"50 g","category":"Grains & bread"},{"name":"Dry yeast","amount":"5 g","category":"Pantry"},{"name":"Water","amount":"450 ml","category":"Pantry"},{"name":"Honey","amount":"30 g","category":"Pantry"},{"name":"Butter","amount":"15 g","category":"Eggs & dairy"}]'::jsonb,
+ '["Whisk semolina, flour, yeast, a pinch of salt and the warm water by hand until smooth and pourable. Rest 20 minutes.","Ladle into a hot dry non-stick pan and cook on one side only until the holes open and the top is dry.","Warm honey with butter and spoon over."]'::jsonb,
+ 340,9,58,9,3,'{budget,vegetarian}',true,'Make the batter the night before and breakfast takes five minutes.'),
+('honey-banana-toast','Honey Banana Toast with Yoghurt','Sweet, fast and no cooking','International','{breakfast,snack}','🍌',1,5,0,'easy',
+ '[{"name":"Khobz bread","amount":"70 g","category":"Grains & bread"},{"name":"Banana","amount":"120 g","category":"Fruit"},{"name":"Plain yoghurt","amount":"150 g","category":"Eggs & dairy"},{"name":"Honey","amount":"12 g","category":"Pantry"},{"name":"Cinnamon","amount":"1 g","category":"Herbs & spices"}]'::jsonb,
+ '["Toast the bread.","Slice the banana over it, spoon the yoghurt alongside.","Drizzle honey and dust with cinnamon."]'::jsonb,
+ 360,16,58,7,4,'{budget,vegetarian,quick}',false,'When mornings are rushed, this one still counts as a real breakfast.'),
+('semolina-date-porridge','Warm Semolina & Date Porridge','Creamy, gently sweet, no oats','Moroccan','{breakfast}','🥣',1,3,8,'easy',
+ '[{"name":"Fine semolina","amount":"50 g","category":"Grains & bread"},{"name":"Milk","amount":"250 ml","category":"Eggs & dairy"},{"name":"Dates","amount":"30 g","category":"Fruit"},{"name":"Almonds","amount":"15 g","category":"Pantry"},{"name":"Orange blossom water","amount":"2 ml","category":"Pantry"}]'::jsonb,
+ '["Warm the milk, rain in the semolina and stir 5 minutes until thick.","Chop dates and almonds with a knife and stir most of them in.","Finish with orange blossom water and the rest on top."]'::jsonb,
+ 400,14,58,12,5,'{budget,vegetarian}',false,'All the comfort of a hot breakfast bowl, none of the oats.'),
+('cheese-olive-batbout','Batbout with Cheese & Olives','Soft pocket bread, salty filling','Moroccan','{breakfast,snack}','🫒',1,5,0,'easy',
+ '[{"name":"Batbout bread","amount":"80 g","category":"Grains & bread"},{"name":"Soft white cheese","amount":"60 g","category":"Eggs & dairy"},{"name":"Green olives","amount":"25 g","category":"Pantry"},{"name":"Tomato","amount":"60 g","category":"Vegetables"},{"name":"Olive oil","amount":"5 g","category":"Pantry"}]'::jsonb,
+ '["Split the batbout.","Spread the cheese, add sliced tomato and chopped olives.","Trickle over olive oil and press together."]'::jsonb,
+ 340,16,38,13,3,'{budget,vegetarian,quick}',false,'Good warm, good cold, good in a bag on the way out.'),
+('eggs-carrot-cumin','Boiled Eggs & Carrot Sticks','Cumin salt makes it','Moroccan','{snack}','🥕',1,5,10,'easy',
+ '[{"name":"Eggs","amount":"2 pc","category":"Eggs & dairy"},{"name":"Carrot","amount":"120 g","category":"Vegetables"},{"name":"Cumin","amount":"1 g","category":"Herbs & spices"}]'::jsonb,
+ '["Boil the eggs 9 minutes, cool under water and peel.","Cut carrots into sticks.","Dip in salt mixed with cumin."]'::jsonb,
+ 190,14,10,11,3,'{budget,high_protein}',true,'Boil six eggs on Sunday and snacks are solved for three days.'),
+('date-almond-bites','Date & Almond Bites','Chopped by hand, no machine','Moroccan','{snack}','🍯',4,15,0,'easy',
+ '[{"name":"Dates","amount":"200 g","category":"Fruit"},{"name":"Almonds","amount":"80 g","category":"Pantry"},{"name":"Sesame seeds","amount":"20 g","category":"Pantry"},{"name":"Cinnamon","amount":"2 g","category":"Herbs & spices"}]'::jsonb,
+ '["Chop the dates very finely with a knife until sticky, then chop the almonds.","Knead everything together by hand with the cinnamon.","Roll into balls and press into sesame seeds. Keep in a tin."]'::jsonb,
+ 200,5,30,8,4,'{budget,vegan,vegetarian}',true,'A tin of these on the shelf and nobody raids the biscuits.'),
+('sesame-honey-crunch','Sesame Honey Crunch','Two ingredients, real treat','Moroccan','{snack}','🍫',4,5,8,'easy',
+ '[{"name":"Sesame seeds","amount":"150 g","category":"Pantry"},{"name":"Honey","amount":"80 g","category":"Pantry"},{"name":"Butter","amount":"10 g","category":"Eggs & dairy"}]'::jsonb,
+ '["Toast the sesame in a dry pan until golden, stirring.","Add honey and butter, cook 2 minutes until it bubbles thickly.","Press flat on a plate, cool, then cut into squares."]'::jsonb,
+ 220,6,20,14,3,'{budget,vegetarian}',true,'Cut them small — they are sweeter than they look.'),
+('orange-cinnamon-yoghurt','Orange & Cinnamon Yoghurt','Two minutes, feels like dessert','Moroccan','{snack}','🍊',1,3,0,'easy',
+ '[{"name":"Plain yoghurt","amount":"170 g","category":"Eggs & dairy"},{"name":"Orange","amount":"150 g","category":"Fruit"},{"name":"Cinnamon","amount":"1 g","category":"Herbs & spices"},{"name":"Honey","amount":"8 g","category":"Pantry"}]'::jsonb,
+ '["Peel and slice the orange.","Spoon yoghurt over, add honey.","Dust generously with cinnamon."]'::jsonb,
+ 190,11,28,4,3,'{budget,vegetarian,quick}',false,'The classic Moroccan orange-and-cinnamon plate, with protein added.'),
+('olive-oil-popcorn','Stovetop Olive Oil Popcorn','Salty, warm, honest','International','{snack}','🍿',2,2,6,'easy',
+ '[{"name":"Popcorn kernels","amount":"50 g","category":"Pantry"},{"name":"Olive oil","amount":"12 g","category":"Pantry"},{"name":"Paprika","amount":"1 g","category":"Herbs & spices"}]'::jsonb,
+ '["Heat oil in a deep pan with a lid, add kernels and cover.","Shake now and then until popping slows.","Season with salt and paprika."]'::jsonb,
+ 160,4,24,6,4,'{budget,vegan,vegetarian,quick}',false,'Evening snack for two that costs almost nothing.'),
+('tuna-cucumber-boats','Tuna Cucumber Boats','Crunchy, high protein, no bread','Mediterranean','{snack}','🥒',1,7,0,'easy',
+ '[{"name":"Cucumber","amount":"200 g","category":"Vegetables"},{"name":"Tinned tuna","amount":"80 g","category":"Fish"},{"name":"Plain yoghurt","amount":"40 g","category":"Eggs & dairy"},{"name":"Lemon","amount":"10 ml","category":"Fruit"},{"name":"Parsley","amount":"5 g","category":"Herbs & spices"}]'::jsonb,
+ '["Halve the cucumber lengthways and scoop a shallow channel with a spoon.","Mix drained tuna with yoghurt, lemon and chopped parsley.","Fill the boats and eat cold."]'::jsonb,
+ 190,22,8,7,2,'{budget,high_protein,quick}',true,'Mix the tuna in the morning, fill at snack time so it stays crisp.'),
+('chickpea-tomato-stew','Quick Chickpea & Tomato Stew','Pantry dinner that tastes slow-cooked','Moroccan','{lunch,dinner}','🍲',2,10,25,'easy',
+ '[{"name":"Tinned chickpeas","amount":"480 g","category":"Pantry & legumes"},{"name":"Tomato","amount":"300 g","category":"Vegetables"},{"name":"Onion","amount":"120 g","category":"Vegetables"},{"name":"Garlic","amount":"10 g","category":"Vegetables"},{"name":"Olive oil","amount":"20 g","category":"Pantry"},{"name":"Cumin","amount":"3 g","category":"Herbs & spices"},{"name":"Paprika","amount":"3 g","category":"Herbs & spices"},{"name":"Khobz bread","amount":"100 g","category":"Grains & bread"}]'::jsonb,
+ '["Soften onion and garlic in olive oil.","Add chopped tomato, cumin, paprika and salt; cook 10 minutes until jammy.","Add the drained chickpeas and a splash of water, simmer 10 minutes.","Serve with khobz to mop the pan."]'::jsonb,
+ 430,20,58,14,12,'{budget,vegan,vegetarian}',true,'Better on day two — make the full pan.'),
+('tuna-rice-veg-bowl','Tuna, Rice & Roasted Veg Bowl','The bowl I make when the fridge is thin','Mediterranean','{lunch,dinner}','🍚',2,10,25,'easy',
+ '[{"name":"Rice","amount":"160 g","category":"Grains & bread"},{"name":"Tinned tuna","amount":"200 g","category":"Fish"},{"name":"Courgette","amount":"250 g","category":"Vegetables"},{"name":"Pepper","amount":"150 g","category":"Vegetables"},{"name":"Olive oil","amount":"20 g","category":"Pantry"},{"name":"Lemon","amount":"20 ml","category":"Fruit"}]'::jsonb,
+ '["Cook the rice.","Roast the chopped courgette and pepper with oil and salt at 200C for 20 minutes.","Pile rice, veg and drained tuna together and finish with lemon."]'::jsonb,
+ 500,33,62,14,6,'{budget,high_protein}',true,'Roast double the vegetables — tomorrow''s lunch is then already half made.'),
+('tuna-tomato-pasta','Tomato & Tuna Pasta','Fifteen minutes, everyone happy','Mediterranean','{lunch,dinner}','🍝',2,5,15,'easy',
+ '[{"name":"Pasta","amount":"180 g","category":"Grains & bread"},{"name":"Tinned tuna","amount":"160 g","category":"Fish"},{"name":"Tomato","amount":"350 g","category":"Vegetables"},{"name":"Garlic","amount":"10 g","category":"Vegetables"},{"name":"Olive oil","amount":"20 g","category":"Pantry"},{"name":"Green olives","amount":"40 g","category":"Pantry"}]'::jsonb,
+ '["Boil the pasta.","Cook garlic in oil, add chopped tomato and olives, simmer 10 minutes.","Fold in tuna and the drained pasta with a spoon of cooking water."]'::jsonb,
+ 540,31,70,15,6,'{budget,quick,high_protein}',false,'Use the tomatoes that are going soft — they make the best sauce.'),
+('loubia-white-beans','Loubia White Beans','Slow, cheap, deeply good','Moroccan','{lunch,dinner}','🫘',3,10,50,'easy',
+ '[{"name":"White beans","amount":"300 g","category":"Pantry & legumes"},{"name":"Tomato","amount":"300 g","category":"Vegetables"},{"name":"Onion","amount":"120 g","category":"Vegetables"},{"name":"Garlic","amount":"12 g","category":"Vegetables"},{"name":"Olive oil","amount":"25 g","category":"Pantry"},{"name":"Paprika","amount":"4 g","category":"Herbs & spices"},{"name":"Cumin","amount":"3 g","category":"Herbs & spices"}]'::jsonb,
+ '["Soak the beans overnight, then boil until tender.","Fry onion and garlic in oil, add tomato and spices, cook down 15 minutes.","Add beans with some cooking water and simmer 20 minutes until thick."]'::jsonb,
+ 420,22,60,12,14,'{budget,vegan,vegetarian}',true,'Freezes beautifully in portions.'),
+('chicken-rice-veg','Chicken, Rice & Vegetables','The plate that proves one meal, two goals','Moroccan','{lunch,dinner}','🍗',2,10,25,'easy',
+ '[{"name":"Chicken breast","amount":"280 g","category":"Protein"},{"name":"Rice","amount":"160 g","category":"Grains & bread"},{"name":"Carrot","amount":"150 g","category":"Vegetables"},{"name":"Courgette","amount":"150 g","category":"Vegetables"},{"name":"Olive oil","amount":"15 g","category":"Pantry"},{"name":"Garlic","amount":"8 g","category":"Vegetables"},{"name":"Turmeric","amount":"2 g","category":"Herbs & spices"},{"name":"Cumin","amount":"2 g","category":"Herbs & spices"}]'::jsonb,
+ '["Cook the rice with turmeric and salt.","Season the chicken with cumin, garlic and salt and pan-cook in oil, 6 minutes each side.","Steam or pan-cook the carrot and courgette until just tender.","Plate rice, chicken and vegetables — the grams differ per person, the pan does not."]'::jsonb,
+ 560,45,62,16,5,'{budget,high_protein}',true,'This is the meal I use to show how your plate and his differ.'),
+('baked-fish-potatoes','Tray-Baked Fish with Potatoes','One tray, charmoula, done','Moroccan','{dinner}','🐟',2,12,35,'easy',
+ '[{"name":"White fish fillet","amount":"320 g","category":"Fish"},{"name":"Potato","amount":"400 g","category":"Vegetables"},{"name":"Tomato","amount":"200 g","category":"Vegetables"},{"name":"Olive oil","amount":"20 g","category":"Pantry"},{"name":"Lemon","amount":"30 ml","category":"Fruit"},{"name":"Coriander","amount":"10 g","category":"Herbs & spices"},{"name":"Garlic","amount":"10 g","category":"Vegetables"},{"name":"Paprika","amount":"4 g","category":"Herbs & spices"}]'::jsonb,
+ '["Chop garlic and coriander finely and stir with oil, lemon, paprika, cumin and salt for the charmoula.","Slice potatoes thin, toss with half the charmoula, bake at 200C for 20 minutes.","Lay fish and tomato slices on top, spoon over the rest and bake 15 minutes more."]'::jsonb,
+ 470,38,44,15,5,'{high_protein}',false,'Sunday dinner energy on a weekday budget.'),
+('turkey-veg-tagine','Turkey & Vegetable Tagine','Lean, saucy, weeknight friendly','Moroccan','{dinner}','🥘',2,12,40,'easy',
+ '[{"name":"Turkey thigh","amount":"300 g","category":"Protein"},{"name":"Carrot","amount":"200 g","category":"Vegetables"},{"name":"Courgette","amount":"200 g","category":"Vegetables"},{"name":"Onion","amount":"120 g","category":"Vegetables"},{"name":"Tomato","amount":"150 g","category":"Vegetables"},{"name":"Olive oil","amount":"18 g","category":"Pantry"},{"name":"Ginger","amount":"3 g","category":"Herbs & spices"},{"name":"Turmeric","amount":"3 g","category":"Herbs & spices"}]'::jsonb,
+ '["Brown the turkey with onion in oil.","Add spices, tomato and a glass of water, cover and simmer 20 minutes.","Add carrot then courgette and cook until tender and the sauce is thick."]'::jsonb,
+ 450,40,32,18,7,'{budget,high_protein}',true,'Turkey thigh costs less than chicken breast and stays juicier.'),
+('shakshuka-khobz','Shakshuka with Khobz','Eggs poached in spiced tomato','Mediterranean','{dinner,breakfast,lunch}','🍅',2,8,20,'easy',
+ '[{"name":"Eggs","amount":"4 pc","category":"Eggs & dairy"},{"name":"Tomato","amount":"400 g","category":"Vegetables"},{"name":"Pepper","amount":"150 g","category":"Vegetables"},{"name":"Onion","amount":"100 g","category":"Vegetables"},{"name":"Olive oil","amount":"18 g","category":"Pantry"},{"name":"Paprika","amount":"3 g","category":"Herbs & spices"},{"name":"Khobz bread","amount":"140 g","category":"Grains & bread"}]'::jsonb,
+ '["Soften onion and pepper in oil, add tomato and paprika and cook 12 minutes.","Make wells and crack in the eggs, cover and cook 5 minutes.","Serve in the pan with khobz."]'::jsonb,
+ 420,24,40,19,6,'{budget,vegetarian,high_protein}',false,'Cheap, fast, and it looks like you tried.'),
+('mjadra-lentils-rice','Mjadra Lentils & Rice','Sweet fried onions on top','Mediterranean','{lunch,dinner}','🧅',3,10,40,'easy',
+ '[{"name":"Green lentils","amount":"250 g","category":"Pantry & legumes"},{"name":"Rice","amount":"150 g","category":"Grains & bread"},{"name":"Onion","amount":"250 g","category":"Vegetables"},{"name":"Olive oil","amount":"30 g","category":"Pantry"},{"name":"Cumin","amount":"4 g","category":"Herbs & spices"},{"name":"Plain yoghurt","amount":"200 g","category":"Eggs & dairy"}]'::jsonb,
+ '["Simmer lentils until nearly soft, add rice, cumin and salt with enough water and cook covered until done.","Slowly fry the sliced onions in oil until deep brown and sweet.","Pile onions on top and serve with yoghurt."]'::jsonb,
+ 480,20,74,13,12,'{budget,vegetarian}',true,'The onions are the whole recipe — take your time with them.'),
+('chicken-couscous-salad','Chicken Couscous Salad','Cold lunch worth looking forward to','Mediterranean','{lunch}','🥗',2,15,12,'easy',
+ '[{"name":"Chicken breast","amount":"240 g","category":"Protein"},{"name":"Couscous","amount":"140 g","category":"Grains & bread"},{"name":"Cucumber","amount":"150 g","category":"Vegetables"},{"name":"Tomato","amount":"150 g","category":"Vegetables"},{"name":"Parsley","amount":"15 g","category":"Herbs & spices"},{"name":"Lemon","amount":"25 ml","category":"Fruit"},{"name":"Olive oil","amount":"18 g","category":"Pantry"}]'::jsonb,
+ '["Steam the couscous with salted boiling water and fluff with a fork.","Pan-cook the seasoned chicken, rest, then slice.","Toss everything with chopped parsley, lemon and oil. Good warm or cold."]'::jsonb,
+ 520,42,58,14,5,'{high_protein,budget}',true,'Packs perfectly for a lunch out of the house.');

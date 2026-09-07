@@ -272,6 +272,63 @@ export type Database = {
           },
         ]
       }
+      prep_batches: {
+        Row: {
+          best_before: string | null
+          created_at: string
+          household_id: string
+          id: string
+          note: string
+          portions_left: number
+          portions_total: number
+          prepared_on: string
+          recipe_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          best_before?: string | null
+          created_at?: string
+          household_id: string
+          id?: string
+          note?: string
+          portions_left?: number
+          portions_total?: number
+          prepared_on?: string
+          recipe_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          best_before?: string | null
+          created_at?: string
+          household_id?: string
+          id?: string
+          note?: string
+          portions_left?: number
+          portions_total?: number
+          prepared_on?: string
+          recipe_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prep_batches_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prep_batches_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           accent: string
