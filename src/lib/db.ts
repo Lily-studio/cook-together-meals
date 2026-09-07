@@ -140,10 +140,12 @@ export function useAddPartner() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (values: Partial<Profile> & { household_id: string }) => {
+      const id = crypto.randomUUID();
       const { error } = await db
         .from("profiles")
-        .insert([{ ...values, id: crypto.randomUUID(), is_owner: false, onboarding_complete: true }]);
+        .insert([{ ...values, id, is_owner: false, onboarding_complete: true }]);
       if (error) throw error;
+      return id;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["household-profiles"] }),
   });
