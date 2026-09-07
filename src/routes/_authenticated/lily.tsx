@@ -27,8 +27,15 @@ export const Route = createFileRoute("/_authenticated/lily")({
   component: LilyHub,
 });
 
-const LINKS: { to: "/tell-lily" | "/prep" | "/discover" | "/settings"; label: string; hint: string; icon: typeof Soup }[] = [
+const LINKS: {
+  to: "/tell-lily" | "/talk" | "/pantry" | "/prep" | "/discover" | "/settings";
+  label: string;
+  hint: string;
+  icon: typeof Soup;
+}[] = [
   { to: "/tell-lily", label: "Tell Lily what I ate", hint: "She'll estimate the calories", icon: MessageCircleHeart },
+  { to: "/talk", label: "Talk to Lily", hint: "Ask about swaps, dinner, anything", icon: MessagesSquare },
+  { to: "/pantry", label: "My pantry", hint: "What's in stock and what's low", icon: Package },
   { to: "/prep", label: "Prep ahead", hint: "What to cook in advance", icon: Soup },
   { to: "/discover", label: "Recipes", hint: "Browse and favourite", icon: Compass },
   { to: "/settings", label: "My details", hint: "Weight, activity, foods I skip", icon: Settings },
