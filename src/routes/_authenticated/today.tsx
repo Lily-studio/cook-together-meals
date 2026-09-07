@@ -40,6 +40,7 @@ function Today() {
   const plan = usePlan(householdId, date, date);
   const logs = useLogs(householdId, date, date);
   const deleteLog = useDeleteLog();
+  const pantry = usePantry(householdId);
 
   const entries = plan.data ?? [];
   const dayLogs = logs.data ?? [];
