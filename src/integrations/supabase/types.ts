@@ -154,16 +154,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          monthly_budget: number | null
           name: string
         }
         Insert: {
           created_at?: string
           id?: string
+          monthly_budget?: number | null
           name?: string
         }
         Update: {
           created_at?: string
           id?: string
+          monthly_budget?: number | null
           name?: string
         }
         Relationships: []
@@ -218,6 +221,53 @@ export type Database = {
             columns: ["recipe_id"]
             isOneToOne: false
             referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pantry_items: {
+        Row: {
+          category: string
+          created_at: string
+          household_id: string
+          id: string
+          low_threshold: number
+          name: string
+          quantity: number
+          staple: boolean
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          household_id: string
+          id?: string
+          low_threshold?: number
+          name: string
+          quantity?: number
+          staple?: boolean
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          household_id?: string
+          id?: string
+          low_threshold?: number
+          name?: string
+          quantity?: number
+          staple?: boolean
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pantry_items_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
             referencedColumns: ["id"]
           },
         ]

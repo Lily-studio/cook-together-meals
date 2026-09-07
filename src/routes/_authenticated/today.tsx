@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { MessageCircleHeart, Trash2 } from "lucide-react";
+import { MessageCircleHeart, MessagesSquare, Trash2 } from "lucide-react";
 import { AppShell, Card, SectionTitle } from "@/components/app-shell";
 import { accentOf, useApp } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
 import { CalorieRing, MacroBar } from "@/components/macro";
 import { MealCard } from "@/components/meal-card";
 import { useDeleteLog, useLogs, usePlan } from "@/lib/db";
+import { lowStock, usePantry } from "@/lib/pantry";
 import { SLOTS, SLOT_LABELS, isoDate, prettyDate } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ function Today() {
   const plan = usePlan(householdId, date, date);
   const logs = useLogs(householdId, date, date);
   const deleteLog = useDeleteLog();
+  const pantry = usePantry(householdId);
 
   const entries = plan.data ?? [];
   const dayLogs = logs.data ?? [];
@@ -57,6 +59,7 @@ function Today() {
       );
 
   const planned = entries.filter((e) => e.recipes).length;
+  const low = lowStock(pantry.data ?? []);
 
   return (
     <AppShell
@@ -84,6 +87,35 @@ function Today() {
           </span>
         </span>
       </Link>
+
+      <Link
+        to="/talk"
+        className="mt-2 flex items-center gap-3 rounded-3xl bg-card p-4 shadow-soft transition-colors hover:bg-butter/30"
+      >
+        <span className="flex size-11 items-center justify-center rounded-2xl bg-butter/50 text-caramel">
+          <MessagesSquare className="size-6" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-[17px] font-semibold">Talk to Lily</span>
+          <span className="block text-[12px] text-muted-foreground">
+            Missing an ingredient? Ask her for a swap
+          </span>
+        </span>
+      </Link>
+
+      {low.length > 0 ? (
+        <Card className="mt-3 bg-butter/40">
+          <p className="font-display text-[15px] font-semibold">Running low</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {low.map((i) => i.name).slice(0, 4).join(", ")}
+            {low.length > 4 ? ` and ${low.length - 4} more` : ""} —{" "}
+            <Link to="/pantry" className="font-semibold text-caramel hover:underline">
+              top up the pantry
+            </Link>
+            .
+          </p>
+        </Card>
+      ) : null}
 
       <SectionTitle>Today's progress</SectionTitle>
       <div className="grid gap-3">

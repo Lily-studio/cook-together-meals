@@ -26,6 +26,7 @@ import {
 import { SLOT_EMOJI, SLOT_LABELS, scaleMacros } from "@/lib/nutrition";
 import { portionsFor } from "@/lib/planner";
 import { scaleAmount, suggestSwaps } from "@/lib/portions";
+import { ingredientsUsed, usePantryMutations } from "@/lib/pantry";
 import { cn } from "@/lib/utils";
 
 export function MealCard({
@@ -42,6 +43,7 @@ export function MealCard({
   onlyProfileId?: string | undefined;
 }) {
   const { people, householdId } = useApp();
+  const pantry = usePantryMutations(householdId);
   const setEntry = useSetPlanEntry();
   const updateEntry = useUpdatePlanEntry();
   const deleteEntry = useDeletePlanEntry();
@@ -81,7 +83,18 @@ export function MealCard({
         source: "plan",
         ...macros,
       },
-      { onSuccess: () => toast.success("Logged — nice one!") },
+      {
+        onSuccess: () => {
+          // Take what this portion actually used out of the pantry.
+          const used = ingredientsUsed(recipe, portions[profileId] ?? 1, swaps);
+          pantry.consume.mutate(used, {
+            onSuccess: (count) =>
+              toast.success(
+                count > 0 ? "Logged — pantry updated 🌼" : "Logged — nice one!",
+              ),
+          });
+        },
+      },
     );
   };
 

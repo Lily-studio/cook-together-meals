@@ -47,6 +47,31 @@ export function scaleAmount(amount: string, multiplier: number): string {
   return pretty(parsed.value * multiplier, parsed.rest);
 }
 
+/** Split "250 g" into a number and a unit, normalising kg/l to g/ml. */
+export function parseAmount(amount: string): { value: number; unit: string } | null {
+  const parsed = parseLeadingNumber(amount ?? "");
+  if (!parsed) return null;
+  const raw = parsed.rest.trim().toLowerCase();
+  if (/^kg\b/.test(raw)) return { value: parsed.value * 1000, unit: "g" };
+  if (/^g\b/.test(raw)) return { value: parsed.value, unit: "g" };
+  if (/^(l|litre|liter)\b/.test(raw)) return { value: parsed.value * 1000, unit: "ml" };
+  if (/^cl\b/.test(raw)) return { value: parsed.value * 10, unit: "ml" };
+  if (/^ml\b/.test(raw)) return { value: parsed.value, unit: "ml" };
+  return { value: parsed.value, unit: "pc" };
+}
+
+/** Human-friendly stock amount: 1200 g -> "1.2 kg". */
+export function formatStock(value: number, unit: string) {
+  const v = Math.max(0, value);
+  if (unit === "g" && v >= 1000) return `${Math.round((v / 1000) * 10) / 10} kg`;
+  if (unit === "ml" && v >= 1000) return `${Math.round((v / 1000) * 10) / 10} L`;
+  if (unit === "pc") {
+    const rounded = Math.round(v * 2) / 2;
+    return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)} pc`;
+  }
+  return `${Math.round(v)} ${unit}`;
+}
+
 /** Grams (or ml) in an amount string, when there are any. */
 export function gramsIn(amount: string): number | null {
   const parsed = parseLeadingNumber(amount);
