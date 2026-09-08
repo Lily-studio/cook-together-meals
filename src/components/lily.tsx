@@ -60,7 +60,10 @@ function Alive({ children, className }: { children: React.ReactNode; className?:
   );
 }
 
-/** Small round Lily, used in headers and chat bubbles. Tap her for a reaction. */
+/**
+ * Small full-body Lily, used in headers, nav and chat bubbles — no circle,
+ * she simply stands there. `size` is her height. Tap her for a reaction.
+ */
 export function LilyAvatar({
   className,
   size = 56,
@@ -98,11 +101,11 @@ export function LilyAvatar({
           onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && poke()}
           aria-label={interactive ? "Say hello to Lily" : undefined}
           className={cn(
-            "animate-lily-bob inline-flex shrink-0 items-end justify-center overflow-hidden rounded-full bg-butter/50 ring-1 ring-caramel/20",
+            "animate-lily-bob inline-flex shrink-0 items-end justify-center",
             interactive && "cursor-pointer",
             className,
           )}
-          style={{ width: size, height: size }}
+          style={{ height: size * 1.5, width: size }}
         >
           <img
             key={poked}
@@ -112,7 +115,7 @@ export function LilyAvatar({
             height={768}
             loading="lazy"
             className={cn(
-              "h-[135%] w-auto max-w-none translate-y-[4%] object-contain",
+              "h-full w-auto max-w-none object-contain object-bottom drop-shadow-sm",
               poked > 0 && "animate-lily-pop",
             )}
           />
@@ -124,6 +127,46 @@ export function LilyAvatar({
         </span>
       ) : null}
     </span>
+  );
+}
+
+/**
+ * Lily standing beside a section, with a little line of her own.
+ * Full body, no frame — she belongs to the page.
+ */
+export function LilyBeside({
+  children,
+  mood = "welcome",
+  height = 132,
+  className,
+  flip = false,
+}: {
+  children?: React.ReactNode;
+  mood?: LilyMood;
+  height?: number;
+  className?: string;
+  flip?: boolean;
+}) {
+  const img = lilyImage(mood);
+  return (
+    <div className={cn("flex items-end gap-3", flip && "flex-row-reverse", className)}>
+      <Alive className="shrink-0">
+        <img
+          src={img.src}
+          alt={img.alt}
+          width={768}
+          height={768}
+          loading="lazy"
+          style={{ height }}
+          className="animate-lily-sway w-auto max-w-none object-contain object-bottom drop-shadow-sm"
+        />
+      </Alive>
+      {children ? (
+        <div className="relative mb-3 flex-1 rounded-3xl rounded-bl-sm bg-card px-4 py-3 text-sm leading-relaxed shadow-soft">
+          {children}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

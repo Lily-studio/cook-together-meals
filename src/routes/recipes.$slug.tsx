@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Users } from "lucide-react";
-import { LilySays } from "@/components/lily";
+import { LilyBeside, LilySays } from "@/components/lily";
+import { useApp } from "@/components/app-context";
 import { useRecipe } from "@/lib/db";
+import { portionsFor } from "@/lib/planner";
+import { formatGrams, splitDish } from "@/lib/dish";
 
 export const Route = createFileRoute("/recipes/$slug")({
   head: ({ params }) => ({
@@ -18,6 +21,10 @@ export const Route = createFileRoute("/recipes/$slug")({
 function RecipePage() {
   const { slug } = Route.useParams();
   const { data: recipe, isLoading } = useRecipe(slug);
+  const { people } = useApp();
+  const slot = recipe?.meal_types?.[0] ?? "dinner";
+  const split =
+    recipe && people.length ? splitDish(recipe, people, portionsFor(people, slot, recipe)) : null;
 
   return (
     <main className="paper min-h-screen bg-background pb-16">
@@ -69,7 +76,49 @@ function RecipePage() {
               ))}
             </div>
 
-            {recipe.lily_note ? <LilySays className="mt-5">{recipe.lily_note}</LilySays> : null}
+            {split ? (
+              <section className="mt-5 rounded-3xl bg-card p-4 shadow-soft">
+                <h2 className="font-display text-[17px] font-semibold">
+                  👩🏻‍🍳 Prepare this once — for both of you
+                </h2>
+                <p className="mt-1 text-[13px] text-muted-foreground">
+                  Cook the whole recipe, then weigh the finished dish and serve these amounts.
+                </p>
+                <p className="mt-3 rounded-2xl bg-butter/45 px-3 py-2 text-[13px] font-semibold">
+                  {split.batches !== 1 ? `Make ${split.batches}× the recipe · ` : ""}Total finished dish ≈{" "}
+                  {formatGrams(split.total)}
+                </p>
+                <ul className="mt-2 grid gap-2">
+                  {split.shares.map((s) => (
+                    <li
+                      key={s.id}
+                      className="flex items-baseline justify-between rounded-2xl bg-secondary/50 px-3.5 py-2.5"
+                    >
+                      <span className="text-[13px] font-semibold">{s.name}</span>
+                      <span className="text-right">
+                        <span className="font-display text-[19px] font-semibold">{formatGrams(s.grams)}</span>
+                        <span className="block text-[11px] text-muted-foreground">
+                          ≈ {s.calories} kcal · {s.protein}g protein
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {split.leftover > 0 ? (
+                  <p className="mt-2 text-[12px] text-muted-foreground">
+                    🧊 <span className="font-semibold">{formatGrams(split.leftover)} left over</span> — keep it
+                    covered in the fridge for up to 3 days, then reheat gently. That's another meal already done.
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
+
+            {recipe.lily_note ? (
+              <LilyBeside mood="cooking" height={130} className="mt-5">
+                {recipe.lily_note}
+              </LilyBeside>
+            ) : null}
+
 
             <h2 className="mt-6 mb-2 font-display text-[15px] font-semibold tracking-wide text-muted-foreground uppercase">
               Ingredients

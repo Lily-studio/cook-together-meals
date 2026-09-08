@@ -25,7 +25,8 @@ import {
 } from "@/lib/db";
 import { SLOT_EMOJI, SLOT_LABELS, scaleMacros } from "@/lib/nutrition";
 import { portionsFor } from "@/lib/planner";
-import { scaleAmount, suggestSwaps } from "@/lib/portions";
+import { suggestSwaps } from "@/lib/portions";
+import { formatGrams, splitDish } from "@/lib/dish";
 import { ingredientsUsed, usePantryMutations } from "@/lib/pantry";
 import { cn } from "@/lib/utils";
 
@@ -116,6 +117,7 @@ export function MealCard({
 
   const minutes = recipe ? recipe.prep_minutes + recipe.cook_minutes : 0;
   const swapCandidates = swapFor ? suggestSwaps(swapFor.name, swapFor.amount) : [];
+  const split = recipe ? splitDish(recipe, shown, portions, swaps) : null;
 
   return (
     <Card className="relative">
@@ -168,27 +170,34 @@ export function MealCard({
         </div>
       </div>
 
-      {recipe ? (
-        <ul className="mt-3 grid gap-2 border-t border-border/60 pt-3">
-          {shown.map((p) => {
-            const mult = portions[p.id] ?? 1;
-            const macros = scaleMacros(recipe, mult);
-            const accent = accentOf(p);
-            const eaten = logs.some((l) => l.profile_id === p.id && l.slot === slot);
-            const expanded = openFor === p.id;
-            return (
-              <li key={p.id} className="rounded-2xl bg-secondary/40 px-2.5 py-2">
-                <div className="flex items-center gap-2">
+      {recipe && split ? (
+        <div className="mt-3 border-t border-border/60 pt-3">
+          <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            Cook it once{split.batches !== 1 ? ` · make ${split.batches}× the recipe` : ""} · finished dish ≈{" "}
+            {formatGrams(split.total)}
+          </p>
+
+          <ul className="mt-2 grid gap-2">
+            {split.shares.map((share) => {
+              const p = shown.find((x) => x.id === share.id)!;
+              const mult = portions[p.id] ?? 1;
+              const accent = accentOf(p);
+              const eaten = logs.some((l) => l.profile_id === p.id && l.slot === slot);
+              return (
+                <li key={p.id} className="flex items-center gap-2 rounded-2xl bg-secondary/40 px-2.5 py-2">
                   <span className={cn("size-2 shrink-0 rounded-full", accent.dot)} />
                   <span className="w-16 shrink-0 truncate text-[12px] font-semibold">{p.display_name}</span>
                   {mult === 0 ? (
                     <span className="flex-1 text-[12px] text-muted-foreground italic">eating something else</span>
                   ) : (
-                    <span className="flex-1 text-[12px] text-muted-foreground tabular-nums">
-                      {macros.calories} kcal · {macros.protein}g P
+                    <span className="min-w-0 flex-1 truncate text-[12px] tabular-nums">
+                      <span className="font-display text-[15px] font-semibold">
+                        {formatGrams(share.grams)}
+                      </span>
+                      <span className="text-muted-foreground"> ≈ {share.calories} kcal</span>
                     </span>
                   )}
-                  <span className="flex items-center gap-1 rounded-full bg-card px-1.5 py-0.5">
+                  <span className="flex shrink-0 items-center gap-1 rounded-full bg-card px-1.5 py-0.5">
                     <button
                       onClick={() => adjust(p.id, -0.25)}
                       aria-label={`Smaller portion for ${p.display_name}`}
@@ -196,9 +205,6 @@ export function MealCard({
                     >
                       <Minus className="size-3.5" />
                     </button>
-                    <span className="w-9 text-center text-[11px] font-semibold tabular-nums">
-                      {mult.toFixed(2).replace(/0$/, "")}×
-                    </span>
                     <button
                       onClick={() => adjust(p.id, 0.25)}
                       aria-label={`Bigger portion for ${p.display_name}`}
@@ -212,7 +218,7 @@ export function MealCard({
                     disabled={eaten}
                     aria-label={`Log this meal for ${p.display_name}`}
                     className={cn(
-                      "flex size-7 items-center justify-center rounded-full transition-colors",
+                      "flex size-7 shrink-0 items-center justify-center rounded-full transition-colors",
                       eaten
                         ? "bg-olive/20 text-olive"
                         : "bg-butter/60 text-caramel hover:bg-caramel hover:text-caramel-foreground",
@@ -220,60 +226,63 @@ export function MealCard({
                   >
                     {eaten ? <Check className="size-4" /> : <UtensilsCrossed className="size-3.5" />}
                   </button>
-                </div>
+                </li>
+              );
+            })}
+          </ul>
 
-                {mult > 0 ? (
-                  <button
-                    onClick={() => setOpenFor(expanded ? null : p.id)}
-                    className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-caramel"
-                  >
-                    <ChevronDown className={cn("size-3.5 transition-transform", expanded && "rotate-180")} />
-                    {expanded ? "Hide quantities" : `Exact quantities for ${p.display_name}`}
-                  </button>
-                ) : null}
+          {split.leftover > 0 ? (
+            <p className="mt-2 rounded-2xl bg-butter/45 px-3 py-2 text-[12px] text-muted-foreground">
+              🧊 {formatGrams(split.leftover)} left over — pop it in the fridge, that's another meal sorted.
+            </p>
+          ) : null}
 
-                {expanded ? (
-                  <ul className="mt-1.5 grid gap-1 border-t border-border/60 pt-1.5">
-                    {recipe.ingredients.map((ing) => {
-                      const swapped = swaps[ing.name];
-                      const name = swapped?.name ?? ing.name;
-                      const baseAmount = swapped?.amount ?? ing.amount;
-                      return (
-                        <li key={ing.name} className="flex items-center gap-2 text-[12px]">
-                          <span className="min-w-0 flex-1 truncate">
-                            {name}
-                            {swapped ? (
-                              <span className="ml-1 text-[10px] text-olive">swapped</span>
-                            ) : null}
-                          </span>
-                          <span className="shrink-0 font-semibold tabular-nums">
-                            {scaleAmount(baseAmount, mult / Math.max(1, recipe.base_servings))}
-                          </span>
-                          {swapped ? (
-                            <button
-                              onClick={() => clearSwap(ing.name)}
-                              className="shrink-0 text-[10px] font-semibold text-muted-foreground hover:text-terracotta"
-                            >
-                              undo
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setSwapFor({ name: ing.name, amount: ing.amount })}
-                              aria-label={`Replace ${ing.name}`}
-                              className="shrink-0 text-muted-foreground hover:text-caramel"
-                            >
-                              <Repeat2 className="size-3.5" />
-                            </button>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : null}
+          <button
+            onClick={() => setOpenFor(openFor === "all" ? null : "all")}
+            className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-caramel"
+          >
+            <ChevronDown className={cn("size-3.5 transition-transform", openFor === "all" && "rotate-180")} />
+            {openFor === "all" ? "Hide the shopping quantities" : "What to cook — for both of you"}
+          </button>
+
+          {openFor === "all" ? (
+            <ul className="mt-1.5 grid gap-1 border-t border-border/60 pt-1.5">
+              {recipe.ingredients.map((ing) => {
+                const swapped = swaps[ing.name];
+                const name = swapped?.name ?? ing.name;
+                const amount = swapped?.amount ?? ing.amount;
+                return (
+                  <li key={ing.name} className="flex items-center gap-2 text-[12px]">
+                    <span className="min-w-0 flex-1 truncate">
+                      {name}
+                      {swapped ? <span className="ml-1 text-[10px] text-olive">swapped</span> : null}
+                    </span>
+                    <span className="shrink-0 font-semibold tabular-nums">{amount}</span>
+                    {swapped ? (
+                      <button
+                        onClick={() => clearSwap(ing.name)}
+                        className="shrink-0 text-[10px] font-semibold text-muted-foreground hover:text-terracotta"
+                      >
+                        undo
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setSwapFor({ name: ing.name, amount: ing.amount })}
+                        aria-label={`Replace ${ing.name}`}
+                        className="shrink-0 text-muted-foreground hover:text-caramel"
+                      >
+                        <Repeat2 className="size-3.5" />
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+              <li className="mt-1 text-[11px] text-muted-foreground italic">
+                Cook the whole thing, then weigh the finished dish and serve the grams above 🌼
               </li>
-            );
-          })}
-        </ul>
+            </ul>
+          ) : null}
+        </div>
       ) : null}
 
       <RecipePicker

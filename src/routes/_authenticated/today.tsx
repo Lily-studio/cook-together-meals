@@ -106,7 +106,7 @@ function Today() {
         >
           <ChevronLeft className="size-4" />
         </button>
-        <div className="-mx-1 flex flex-1 gap-1.5 overflow-x-auto px-1">
+        <div className="-mx-1 flex min-w-0 flex-1 gap-1.5 overflow-x-auto px-1">
           {strip.map((d) => {
             const iso = isoDate(d);
             return (
