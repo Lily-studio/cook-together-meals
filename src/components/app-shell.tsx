@@ -103,7 +103,7 @@ export function AppShell({
         </p>
       </aside>
 
-      <div className="relative z-10 mx-auto w-full max-w-md px-5 lg:mx-0 lg:max-w-none lg:flex-1 lg:px-10">
+      <div className="relative z-10 mx-auto w-full max-w-md min-w-0 px-5 lg:mx-0 lg:max-w-none lg:flex-1 lg:px-10">
         <header className="flex items-center gap-3 pt-7 pb-5">
           <span className="lg:hidden">
             <LilyAvatar size={46} mood={mood} />
@@ -145,12 +145,7 @@ export function AppShell({
                 )}
               >
                 {item.lily ? (
-                  <LilyAvatar
-                    size={22}
-                    mood="wink"
-                    interactive={false}
-                    className={cn("ring-2", active ? "ring-caramel" : "ring-transparent")}
-                  />
+                  <LilyAvatar size={20} mood="wink" interactive={false} />
                 ) : item.icon ? (
                   <item.icon className="size-5" />
                 ) : null}
@@ -165,7 +160,7 @@ export function AppShell({
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("rounded-3xl bg-card p-4 shadow-soft", className)}>{children}</div>;
+  return <div className={cn("min-w-0 rounded-3xl bg-card p-4 shadow-soft", className)}>{children}</div>;
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {
