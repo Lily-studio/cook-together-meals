@@ -160,7 +160,7 @@ export function AppShell({
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("rounded-3xl bg-card p-4 shadow-soft", className)}>{children}</div>;
+  return <div className={cn("min-w-0 rounded-3xl bg-card p-4 shadow-soft", className)}>{children}</div>;
 }
 
 export function SectionTitle({ children }: { children: ReactNode }) {
