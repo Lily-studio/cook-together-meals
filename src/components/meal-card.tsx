@@ -28,7 +28,7 @@ import {
 import { SLOT_EMOJI, SLOT_LABELS, scaleMacros } from "@/lib/nutrition";
 import { portionsFor } from "@/lib/planner";
 import { suggestSwaps } from "@/lib/portions";
-import { cheaperIdea, whyThisMeal } from "@/lib/lily-brain";
+import { cheaperIdea, servingVariant, whyThisMeal } from "@/lib/lily-brain";
 import { formatGrams, splitDish } from "@/lib/dish";
 import { ingredientsUsed, usePantry, usePantryMutations } from "@/lib/pantry";
 import { cn } from "@/lib/utils";
@@ -132,6 +132,12 @@ export function MealCard({
       })
     : "";
   const cheaper = recipe ? cheaperIdea(recipe, swaps) : null;
+  const variant = recipe && shown.length > 1 ? servingVariant(recipe) : null;
+  // The lighter plate goes to whoever eats less of this dish.
+  const lighter = variant
+    ? [...shown].sort((a, b) => (portions[a.id] ?? 1) - (portions[b.id] ?? 1))[0]
+    : null;
+
 
   return (
     <Card className="relative">
@@ -254,6 +260,15 @@ export function MealCard({
               🧊 {formatGrams(split.leftover)} left over — pop it in the fridge, that's another meal sorted.
             </p>
           ) : null}
+
+          {variant && lighter ? (
+            <p className="mt-2 rounded-2xl bg-olive/12 px-3 py-2 text-[12px] text-muted-foreground">
+              🥬 <span className="font-semibold text-foreground">One meal, two plates:</span> same pan for
+              both of you — {lighter.display_name} can have the filling piled over lettuce instead of the{" "}
+              {variant.breadName.toLowerCase()}.
+            </p>
+          ) : null}
+
 
           {cheaper && entry ? (
             <button
