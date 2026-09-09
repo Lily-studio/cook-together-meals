@@ -263,7 +263,7 @@ export function buildGroceryList(
           vague: null,
         } satisfies Line);
 
-      const parsed = parseAmount(ing.amount);
+      const parsed = parseAmount(spoonsToMetric(ing.amount));
       if (!parsed) {
         line.vague = { text: ing.amount, times: (line.vague?.times ?? 0) + batches };
       } else if (parsed.unit === "g") line.grams += parsed.value * batches;
