@@ -39,10 +39,28 @@ export const Route = createFileRoute("/_authenticated/pantry")({
 const UNITS = ["g", "ml", "pc"] as const;
 
 function PantryPage() {
-  const { householdId } = useApp();
+  const { householdId, people } = useApp();
   const { data: items = [], isLoading } = usePantry(householdId);
   const { add, update, remove } = usePantryMutations(householdId);
   const grocery = useGroceryMutations(householdId, thisWeekStart());
+  const { data: recipes = [] } = useRecipes();
+  const setEntry = useSetPlanEntry();
+  const fridgeIdeas = useMemo(() => cookFromFridge(recipes, items), [recipes, items]);
+
+  const cookTonight = (recipeId: string, title: string) => {
+    const recipe = recipes.find((r) => r.id === recipeId);
+    if (!recipe || !householdId) return;
+    setEntry.mutate(
+      {
+        household_id: householdId,
+        plan_date: isoDate(new Date()),
+        slot: "dinner",
+        recipe_id: recipe.id,
+        portions: portionsFor(people, "dinner", recipe),
+      },
+      { onSuccess: () => toast.success(`${title} is tonight's dinner 🌼`) },
+    );
+  };
 
   const [name, setName] = useState("");
   const [qty, setQty] = useState("");
