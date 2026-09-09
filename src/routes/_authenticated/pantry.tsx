@@ -138,6 +138,36 @@ function PantryPage() {
         </>
       ) : null}
 
+      {fridgeIdeas.length ? (
+        <>
+          <SectionTitle>What's in my fridge?</SectionTitle>
+          <Card className="grid gap-2">
+            <p className="text-[13px] text-muted-foreground">
+              With what you have right now, I could make these — tap one and it becomes tonight's dinner.
+            </p>
+            {fridgeIdeas.map((idea) => (
+              <div key={idea.recipe.id} className="flex items-center gap-2 rounded-2xl bg-secondary/40 p-2.5">
+                <span aria-hidden>{idea.recipe.emoji}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-semibold">{idea.recipe.title}</span>
+                  <span className="block truncate text-[11px] text-muted-foreground">
+                    {idea.have} of {idea.total} ingredients at home
+                    {idea.missing.length ? ` · still need ${idea.missing.join(", ").toLowerCase()}` : " · nothing missing!"}
+                  </span>
+                </span>
+                <Button
+                  size="sm"
+                  className="h-8 shrink-0 rounded-full"
+                  onClick={() => cookTonight(idea.recipe.id, idea.recipe.title)}
+                >
+                  Cook it
+                </Button>
+              </div>
+            ))}
+          </Card>
+        </>
+      ) : null}
+
       <SectionTitle>Add something</SectionTitle>
       <Card className="grid gap-2">
         <Input
