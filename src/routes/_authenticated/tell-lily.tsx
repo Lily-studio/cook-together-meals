@@ -204,6 +204,65 @@ function TellLily() {
           </Card>
         </>
       ) : null}
+
+      {over > 0 ? (
+        <Card className="mt-4 bg-butter/45">
+          <p className="font-display text-[15px] font-semibold">Had a bigger day? That's fine 🌼</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">{reassure(over)}</p>
+        </Card>
+      ) : null}
+
+      <SectionTitle>Craving something?</SectionTitle>
+      <Card>
+        <p className="text-[13px] text-muted-foreground">
+          Tell me what you fancy and I'll find something that fits — you have about {kcalLeft} kcal left today.
+        </p>
+        <Input
+          value={craving}
+          onChange={(e) => setCraving(e.target.value)}
+          placeholder="Something sweet, salty, bread…"
+          className="mt-2 rounded-full"
+        />
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {["something sweet", "salty", "bread", "creamy", "crunchy", "warm"].map((c) => (
+            <Chip key={c} onClick={() => setCraving(c)}>
+              {c}
+            </Chip>
+          ))}
+        </div>
+        {craving.trim().length > 2 ? (
+          treats.length ? (
+            <ul className="mt-3 grid gap-2">
+              {treats.map((t) => (
+                <li
+                  key={t.recipe.id}
+                  className="flex items-center gap-2 rounded-2xl bg-secondary/40 p-2.5"
+                >
+                  <span aria-hidden>{t.recipe.emoji}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-semibold">{t.recipe.title}</span>
+                    <span className="block truncate text-[11px] text-muted-foreground">
+                      {t.recipe.calories} kcal a serving ·{" "}
+                      {t.fits ? "fits your day easily" : "a proper treat — worth it sometimes"}
+                    </span>
+                  </span>
+                  <Button
+                    size="sm"
+                    className="h-8 shrink-0 rounded-full"
+                    onClick={() => planTreat(t.recipe.id, t.recipe.title)}
+                  >
+                    Have it
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-[13px] text-muted-foreground">
+              Nothing in my book matches that yet — try “sweet”, “salty” or “bread”.
+            </p>
+          )
+        ) : null}
+      </Card>
     </AppShell>
   );
 }
