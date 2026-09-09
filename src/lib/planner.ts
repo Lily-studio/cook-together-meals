@@ -1,5 +1,5 @@
 import type { Profile, Recipe } from "./db";
-import { hasLunchProtein, lunchRuleRelaxed } from "./lily-brain";
+import { hasLunchProtein, isCompleteMeal, lunchRuleRelaxed } from "./lily-brain";
 import { SLOTS, SLOT_MEAL_TYPE, SLOT_SHARE, isoDate, suggestedPortion } from "./nutrition";
 import { formatStock, parseAmount } from "./portions";
 

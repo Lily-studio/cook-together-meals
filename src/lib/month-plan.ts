@@ -83,6 +83,16 @@ export function generateMonth({
   });
 
   const lastUsedOn = new Map<string, number>();
+  // Variety memory: keep cuisines and starches from repeating day after day.
+  const lastStyleOn = new Map<string, number>();
+
+  const styleOf = (recipe: Recipe) => {
+    const hay = [recipe.title, ...recipe.ingredients.map((i) => i.name)].join(" ").toLowerCase();
+    const starch = ["rice", "pasta", "noodle", "couscous", "bulgur", "potato", "wrap", "tortilla", "pitta", "bun", "bread"].find(
+      (w) => hay.includes(w),
+    );
+    return `${recipe.cuisine.toLowerCase()}|${starch ?? "none"}`;
+  };
 
   dates.forEach((date, dayIndex) => {
     const usedToday = new Set<string>();
@@ -91,20 +101,30 @@ export function generateMonth({
       if (!pool.length) return;
       const gapWanted = pool.length > 5 ? 5 : pool.length > 3 ? 3 : 1;
       const offset = dayIndex * 2 + slotIndex * 3 + seed;
+      const variedSlot = slot === "lunch" || slot === "dinner";
 
       let pick: Recipe | undefined;
-      for (let attempt = 0; attempt < pool.length; attempt++) {
-        const candidate = pool[(offset + attempt) % pool.length]!;
-        if (usedToday.has(candidate.id)) continue;
-        const last = lastUsedOn.get(candidate.id);
-        if (last !== undefined && dayIndex - last < gapWanted) continue;
-        pick = candidate;
-        break;
+      // First pass: fresh recipe AND a different cuisine/starch from the last days.
+      for (let pass = 0; pass < 2 && !pick; pass++) {
+        for (let attempt = 0; attempt < pool.length; attempt++) {
+          const candidate = pool[(offset + attempt) % pool.length]!;
+          if (usedToday.has(candidate.id)) continue;
+          const last = lastUsedOn.get(candidate.id);
+          if (last !== undefined && dayIndex - last < gapWanted) continue;
+          if (pass === 0 && variedSlot) {
+            const styleLast = lastStyleOn.get(styleOf(candidate));
+            if (styleLast !== undefined && dayIndex - styleLast < 3) continue;
+          }
+          pick = candidate;
+          break;
+        }
       }
       if (!pick) pick = pool[offset % pool.length]!;
 
       usedToday.add(pick.id);
       lastUsedOn.set(pick.id, dayIndex);
+      lastStyleOn.set(styleOf(pick), dayIndex);
+
       entries.push({
         plan_date: isoDate(date),
         slot,
