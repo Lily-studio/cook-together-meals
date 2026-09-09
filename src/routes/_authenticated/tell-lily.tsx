@@ -95,6 +95,29 @@ function TellLily() {
     }
   };
 
+  const person = people.find((p) => p.id === personId) ?? me;
+  const eatenToday = (logs.data ?? [])
+    .filter((l) => l.profile_id === personId)
+    .reduce((a, l) => a + l.calories, 0);
+  const kcalLeft = Math.max(0, (person?.calorie_target ?? 2000) - eatenToday);
+  const over = eatenToday - (person?.calorie_target ?? 2000);
+  const treats = craving.trim().length > 2 ? treatsFor(recipes, craving, kcalLeft) : [];
+
+  const planTreat = (recipeId: string, title: string) => {
+    const recipe = recipes.find((r) => r.id === recipeId);
+    if (!recipe || !householdId) return;
+    setPlanEntry.mutate(
+      {
+        household_id: householdId,
+        plan_date: date,
+        slot: "snack_pm",
+        recipe_id: recipe.id,
+        portions: portionsFor(people, "snack_pm", recipe),
+      },
+      { onSuccess: () => toast.success(`${title} is your afternoon treat 🌼`) },
+    );
+  };
+
   return (
     <AppShell title="Tell Lily" subtitle="Describe your plate in plain words">
       <LilySays>Tell me what you ate and I'll do the maths — you can edit anything after.</LilySays>
