@@ -40,6 +40,82 @@ export function lunchRuleRelaxed(people: Profile[]) {
 }
 
 /* ------------------------------------------------------------------ *
+ * Is this actually a meal?
+ * ------------------------------------------------------------------ */
+
+/** Words that give a dish a proper base: a starch, a bread, or a pulse. */
+const MAIN_BASE_WORDS = [
+  "rice",
+  "pasta",
+  "noodle",
+  "couscous",
+  "bulgur",
+  "semolina",
+  "potato",
+  "bread",
+  "khobz",
+  "batbout",
+  "msemen",
+  "baguette",
+  "pitta",
+  "pita",
+  "wrap",
+  "tortilla",
+  "bun",
+  "lentil",
+  "chickpea",
+  "bean",
+  "quinoa",
+  "freekeh",
+];
+
+/** Tags and meal types that mark a dish as a nibble rather than a meal. */
+const NOT_A_MEAL_TAGS = ["side", "low-calorie", "appetizer", "starter", "dip"];
+
+/**
+ * Lunch and dinner must feel like a meal someone sits down to: enough of it,
+ * real protein, and a proper base. Little salads, dips and thin soups fail.
+ */
+export function isCompleteMeal(recipe: Recipe) {
+  const tags = recipe.tags.map((t) => t.toLowerCase());
+  if (tags.some((t) => NOT_A_MEAL_TAGS.includes(t))) return false;
+  if (recipe.meal_types.includes("side") && !recipe.meal_types.includes("dinner")) return false;
+  if (recipe.calories < 380) return false;
+  if (recipe.protein < 18) return false;
+  const hay = [recipe.title, ...recipe.ingredients.map((i) => i.name)].join(" ").toLowerCase();
+  const hasBase = MAIN_BASE_WORDS.some((w) => hay.includes(w));
+  const hearty = recipe.calories >= 480 && recipe.protein >= 30;
+  return hasBase || hearty;
+}
+
+/* ------------------------------------------------------------------ *
+ * One meal, two serving formats
+ * ------------------------------------------------------------------ */
+
+const BREAD_WORDS = ["wrap", "tortilla", "pitta", "pita", "bun", "khobz", "batbout", "baguette", "bread"];
+const SALAD_WORDS = ["lettuce", "romaine", "cabbage", "tomato", "cucumber", "salad", "rocket"];
+
+export type ServingVariant = { breadName: string; note: string };
+
+/**
+ * Same pan, same filling — one of you has it in bread, the other over salad.
+ * Only offered when the dish genuinely works that way.
+ */
+export function servingVariant(recipe: Recipe): ServingVariant | null {
+  const bread = recipe.ingredients.find((i) =>
+    BREAD_WORDS.some((w) => i.name.toLowerCase().includes(w)),
+  );
+  if (!bread) return null;
+  const hay = [recipe.title, ...recipe.ingredients.map((i) => i.name)].join(" ").toLowerCase();
+  if (!SALAD_WORDS.some((w) => hay.includes(w))) return null;
+  return {
+    breadName: bread.name,
+    note: `Same chicken, same salad, same sauce — one of you in the ${bread.name.toLowerCase()}, the other piled over lettuce as a bowl.`,
+  };
+}
+
+
+/* ------------------------------------------------------------------ *
  * Why Lily chose this
  * ------------------------------------------------------------------ */
 
