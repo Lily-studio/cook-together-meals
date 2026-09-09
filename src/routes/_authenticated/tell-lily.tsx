@@ -11,10 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useAddLog, usePlan, useUpdatePlanEntry } from "@/lib/db";
+import { useAddLog, useLogs, usePlan, useRecipes, useSetPlanEntry, useUpdatePlanEntry } from "@/lib/db";
 import { estimateMeal, type Estimate } from "@/lib/lily.functions";
 import { localEstimate } from "@/lib/local-estimate";
+import { reassure, treatsFor } from "@/lib/lily-brain";
 import { SLOTS, SLOT_LABELS, isoDate } from "@/lib/nutrition";
+import { portionsFor } from "@/lib/planner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/tell-lily")({
