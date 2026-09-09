@@ -62,11 +62,17 @@ export function candidatesFor(
   const pool = recipes.filter((rec) => rec.meal_types.includes(mealType) && recipeAllowed(rec, r));
   const fallback = recipes.filter((rec) => recipeAllowed(rec, r));
   let list = pool.length ? pool : fallback;
+  // Lunch and dinner are always proper main meals — never a side or a nibble.
+  if (slot === "lunch" || slot === "dinner") {
+    const mains = list.filter(isCompleteMeal);
+    if (mains.length) list = mains;
+  }
   // The permanent house rule: lunch is chicken, minced meat or turkey.
   if (slot === "lunch" && !options.relaxLunchRule) {
     const withProtein = list.filter(hasLunchProtein);
     if (withProtein.length) list = withProtein;
   }
+
   const demoted = (rec: Recipe) => {
     if (!r.demoteWords.length) return 0;
     const hay = [rec.title, ...rec.ingredients.map((i) => i.name)].join(" ").toLowerCase();
