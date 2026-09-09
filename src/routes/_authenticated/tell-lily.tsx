@@ -43,6 +43,10 @@ function TellLily() {
   const [draft, setDraft] = useState<Estimate | null>(null);
   const [who, setWho] = useState(me?.id ?? "");
   const [slot, setSlot] = useState<string>("lunch");
+  const [craving, setCraving] = useState("");
+  const { data: recipes = [] } = useRecipes();
+  const logs = useLogs(householdId, date, date);
+  const setPlanEntry = useSetPlanEntry();
 
   const ask = async () => {
     if (text.trim().length < 2) return;
