@@ -1,4 +1,5 @@
 import type { Profile, Recipe } from "./db";
+import { hasLunchProtein, lunchRuleRelaxed } from "./lily-brain";
 import { SLOTS, SLOT_MEAL_TYPE, SLOT_SHARE, isoDate, suggestedPortion } from "./nutrition";
 
 export type Restrictions = {
@@ -50,11 +51,21 @@ export function recipeAllowed(recipe: Recipe, r: Restrictions) {
   return true;
 }
 
-export function candidatesFor(recipes: Recipe[], slot: string, r: Restrictions) {
+export function candidatesFor(
+  recipes: Recipe[],
+  slot: string,
+  r: Restrictions,
+  options: { relaxLunchRule?: boolean } = {},
+) {
   const mealType = SLOT_MEAL_TYPE[slot] ?? "dinner";
   const pool = recipes.filter((rec) => rec.meal_types.includes(mealType) && recipeAllowed(rec, r));
   const fallback = recipes.filter((rec) => recipeAllowed(rec, r));
-  const list = pool.length ? pool : fallback;
+  let list = pool.length ? pool : fallback;
+  // The permanent house rule: lunch is chicken, minced meat or turkey.
+  if (slot === "lunch" && !options.relaxLunchRule) {
+    const withProtein = list.filter(hasLunchProtein);
+    if (withProtein.length) list = withProtein;
+  }
   const demoted = (rec: Recipe) => {
     if (!r.demoteWords.length) return 0;
     const hay = [rec.title, ...rec.ingredients.map((i) => i.name)].join(" ").toLowerCase();
@@ -90,6 +101,7 @@ export function buildWeekPlan(
   seed = 0,
 ) {
   const r = restrictionsFor(people);
+  const relaxLunchRule = lunchRuleRelaxed(people);
   const recent: string[] = [];
   const entries: {
     plan_date: string;
@@ -100,7 +112,7 @@ export function buildWeekPlan(
 
   dates.forEach((date, dayIndex) => {
     SLOTS.forEach((slot, slotIndex) => {
-      const pool = candidatesFor(recipes, slot, r);
+      const pool = candidatesFor(recipes, slot, r, { relaxLunchRule });
       if (!pool.length) return;
       const fresh = pool.filter((rec) => !recent.includes(rec.id));
       const usable = fresh.length ? fresh : pool;

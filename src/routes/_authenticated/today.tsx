@@ -84,6 +84,20 @@ function Today() {
   );
   const low = lowStock(pantry.data ?? []);
 
+  // Tomorrow, so nothing is a surprise — plus what to take out of the freezer tonight.
+  const tomorrowIso = useMemo(() => isoDate(addDays(date, 1)), [date]);
+  const tomorrowPlan = usePlan(householdId, tomorrowIso, tomorrowIso);
+  const tomorrowEntries = tomorrowPlan.data ?? [];
+  const defrostTonight = useMemo(() => {
+    const names = new Set<string>();
+    tomorrowEntries.forEach((e) =>
+      (e.recipes?.ingredients ?? []).forEach((ing) => {
+        if (ing.category === "Meat" || ing.category === "Fish") names.add(ing.name.toLowerCase());
+      }),
+    );
+    return [...names].slice(0, 3);
+  }, [tomorrowEntries]);
+
   return (
     <AppShell
       title={isToday ? greeting(me?.display_name ?? "there") : prettyDate(viewed)}
@@ -258,6 +272,38 @@ function Today() {
           />
         ))}
       </div>
+
+      <SectionTitle>Tomorrow with Lily 🌙</SectionTitle>
+      {tomorrowEntries.length === 0 ? (
+        <Card>
+          <p className="text-[13px] text-muted-foreground">
+            Nothing written down for tomorrow yet — one tap and I'll plan the whole month.
+          </p>
+        </Card>
+      ) : (
+        <Card>
+          <ul className="grid gap-1.5">
+            {SLOTS.map((slot) => {
+              const e = tomorrowEntries.find((x) => x.slot === slot);
+              if (!e?.recipes) return null;
+              return (
+                <li key={slot} className="flex items-center gap-2 text-[13px]">
+                  <span aria-hidden>{e.recipes.emoji}</span>
+                  <span className="w-24 shrink-0 truncate text-[11px] text-muted-foreground uppercase">
+                    {SLOT_LABELS[slot]}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate font-semibold">{e.recipes.title}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="mt-2 rounded-2xl bg-butter/45 px-3 py-2 text-[12px]">
+            {defrostTonight.length
+              ? `🧊 Take ${defrostTonight.join(" and ")} out of the freezer tonight.`
+              : "Nothing to prepare tonight — tomorrow cooks from fresh."}
+          </p>
+        </Card>
+      )}
 
       <SectionTitle>{isToday ? "Eaten today" : "Logged that day"}</SectionTitle>
       {dayLogs.length === 0 ? (
