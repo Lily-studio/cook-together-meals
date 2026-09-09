@@ -277,8 +277,11 @@ export function buildGroceryList(
   return [...map.values()]
     .map((line) => {
       const parts: string[] = [];
-      if (line.grams > 0) parts.push(formatStock(Math.ceil(line.grams / 10) * 10, "g"));
-      if (line.ml > 0) parts.push(formatStock(Math.ceil(line.ml / 10) * 10, "ml"));
+      // A millilitre of anything you cook with weighs about a gram, so keep one number.
+      const grams = line.grams > 0 && line.ml > 0 ? line.grams + line.ml : line.grams;
+      const ml = line.grams > 0 ? 0 : line.ml;
+      if (grams > 0) parts.push(formatStock(Math.ceil(grams / 10) * 10, "g"));
+      if (ml > 0) parts.push(formatStock(Math.ceil(ml / 10) * 10, "ml"));
       if (line.pieces > 0) parts.push(`${Math.ceil(line.pieces)} pc`);
       if (!parts.length && line.vague)
         parts.push(
