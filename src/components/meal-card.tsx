@@ -261,6 +261,15 @@ export function MealCard({
             </p>
           ) : null}
 
+          {variant && lighter ? (
+            <p className="mt-2 rounded-2xl bg-olive/12 px-3 py-2 text-[12px] text-muted-foreground">
+              🥬 <span className="font-semibold text-foreground">One meal, two plates:</span> same pan for
+              both of you — {lighter.display_name} can have the filling piled over lettuce instead of the{" "}
+              {variant.breadName.toLowerCase()}.
+            </p>
+          ) : null}
+
+
           {cheaper && entry ? (
             <button
               onClick={() => applySwap(cheaper.from, cheaper.to)}
