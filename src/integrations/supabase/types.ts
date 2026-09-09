@@ -171,6 +171,50 @@ export type Database = {
         }
         Relationships: []
       }
+      ingredient_prices: {
+        Row: {
+          created_at: string
+          currency: string
+          household_id: string
+          id: string
+          name: string
+          pack_size: number
+          price: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          household_id: string
+          id?: string
+          name: string
+          pack_size?: number
+          price?: number
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          household_id?: string
+          id?: string
+          name?: string
+          pack_size?: number
+          price?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_prices_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_plan_entries: {
         Row: {
           cooked: boolean
@@ -229,10 +273,12 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          expires_on: string | null
           household_id: string
           id: string
           low_threshold: number
           name: string
+          opened_on: string | null
           quantity: number
           staple: boolean
           unit: string
@@ -241,10 +287,12 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          expires_on?: string | null
           household_id: string
           id?: string
           low_threshold?: number
           name: string
+          opened_on?: string | null
           quantity?: number
           staple?: boolean
           unit?: string
@@ -253,10 +301,12 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          expires_on?: string | null
           household_id?: string
           id?: string
           low_threshold?: number
           name?: string
+          opened_on?: string | null
           quantity?: number
           staple?: boolean
           unit?: string
