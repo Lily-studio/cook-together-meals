@@ -282,13 +282,8 @@ export function buildGroceryList(
       const ml = line.grams > 0 ? 0 : line.ml;
       if (grams > 0) parts.push(formatStock(Math.ceil(grams / 10) * 10, "g"));
       if (ml > 0) parts.push(formatStock(Math.ceil(ml / 10) * 10, "ml"));
-      if (line.pieces > 0) parts.push(`${Math.ceil(line.pieces)} pc`);
-      if (!parts.length && line.vague)
-        parts.push(
-          line.vague.times > 1.4
-            ? `${line.vague.text} (×${Math.round(line.vague.times)})`
-            : line.vague.text,
-        );
+      if (line.pieces > 0) parts.push(countPhrase(line.name, Math.ceil(line.pieces)));
+      if (!parts.length && line.vague) parts.push(vaguePhrase(line.vague.text, line.vague.times));
       return { name: line.name, category: line.category, amount: parts.join(" + ") };
     })
     .sort(
@@ -297,3 +292,46 @@ export function buildGroceryList(
         a.name.localeCompare(b.name),
     );
 }
+
+/** "9 carrots", "6 cloves garlic", "4 eggs" — never "3 × 3". */
+function countPhrase(name: string, count: number) {
+  const needle = name.trim().toLowerCase();
+  const plural = (word: string) => (count === 1 ? word : word.endsWith("s") ? word : `${word}s`);
+  if (needle.includes("garlic")) return `${count} ${plural("clove")} garlic`;
+  const known = [
+    "egg",
+    "onion",
+    "carrot",
+    "tomato",
+    "lemon",
+    "orange",
+    "banana",
+    "apple",
+    "potato",
+    "courgette",
+    "pepper",
+    "cucumber",
+    "aubergine",
+    "date",
+    "khobz",
+    "batbout",
+    "msemen",
+    "harcha",
+  ].find((w) => needle.includes(w));
+  if (known) {
+    const noun = known === "potato" || known === "tomato" ? `${known}es` : plural(known);
+    return `${count} ${count === 1 ? known : noun}`;
+  }
+  return `${count} ${plural("piece")}`;
+}
+
+/** Amounts with no number at all ("a handful", "a bunch") become a real count. */
+function vaguePhrase(text: string, times: number) {
+  const count = Math.max(1, Math.round(times));
+  const label = text.trim().replace(/^(a|an|some)\s+/i, "");
+  if (!label) return `${count} pieces`;
+  if (count === 1) return label;
+  const plural = /s$/i.test(label) ? label : `${label}s`;
+  return `${count} ${plural}`;
+}
+
