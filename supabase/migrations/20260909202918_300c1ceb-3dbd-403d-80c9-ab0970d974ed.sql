@@ -1,0 +1,1 @@
+update public.recipes set meal_types = array_remove(meal_types, 'lunch') where title = 'Sardine Khobz Toast';
