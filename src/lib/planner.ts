@@ -215,6 +215,24 @@ type Line = {
   vague: { text: string; times: number } | null;
 };
 
+/** Things nobody buys by the gram: tap water, salt, seasoning "to taste". */
+const NOT_SHOPPING = ["water", "salt", "ice", "to taste"];
+
+/** Spoons and pinches become millilitres and grams so totals add up properly. */
+function spoonsToMetric(amount: string) {
+  const raw = (amount ?? "").toLowerCase();
+  const match = raw.match(/^\s*([\d.,/]+)\s*(tbsp|tablespoon|tsp|teaspoon|pinch|clove|cloves)/);
+  if (!match) return amount;
+  const [whole, part] = match[1]!.replace(",", ".").split("/");
+  const value = part ? Number(whole) / Number(part) : Number(whole);
+  if (!Number.isFinite(value)) return amount;
+  const unit = match[2]!;
+  if (unit.startsWith("tb") || unit === "tablespoon") return `${value * 15} ml`;
+  if (unit.startsWith("ts") || unit === "teaspoon") return `${value * 5} g`;
+  if (unit === "pinch") return `${value} g`;
+  return `${value} pc`;
+}
+
 /**
  * The real shopping list: every ingredient the plan needs, added up into one
  * honest quantity per item (400 g + 250 g = 650 g, not "400 g × 2").
@@ -232,6 +250,8 @@ export function buildGroceryList(
 
     recipe.ingredients.forEach((ing) => {
       const key = ing.name.trim().toLowerCase();
+      if (NOT_SHOPPING.some((w) => key === w || key.startsWith(`${w} `) || key.endsWith(` ${w}`)))
+        return;
       const line =
         map.get(key) ??
         ({
