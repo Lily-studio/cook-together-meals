@@ -142,41 +142,131 @@ export const GROCERY_ORDER = [
   "Other",
 ];
 
+/** When a recipe forgot to say which aisle an ingredient belongs to. */
+const AISLE_WORDS: { word: string; aisle: string }[] = [
+  { word: "chicken", aisle: "Meat" },
+  { word: "turkey", aisle: "Meat" },
+  { word: "beef", aisle: "Meat" },
+  { word: "lamb", aisle: "Meat" },
+  { word: "mince", aisle: "Meat" },
+  { word: "kefta", aisle: "Meat" },
+  { word: "sardine", aisle: "Fish" },
+  { word: "tuna", aisle: "Fish" },
+  { word: "fish", aisle: "Fish" },
+  { word: "prawn", aisle: "Fish" },
+  { word: "egg", aisle: "Dairy" },
+  { word: "yoghurt", aisle: "Dairy" },
+  { word: "milk", aisle: "Dairy" },
+  { word: "cheese", aisle: "Dairy" },
+  { word: "butter", aisle: "Dairy" },
+  { word: "labneh", aisle: "Dairy" },
+  { word: "khobz", aisle: "Bakery" },
+  { word: "batbout", aisle: "Bakery" },
+  { word: "msemen", aisle: "Bakery" },
+  { word: "harcha", aisle: "Bakery" },
+  { word: "bread", aisle: "Bakery" },
+  { word: "baguette", aisle: "Bakery" },
+  { word: "pitta", aisle: "Bakery" },
+  { word: "couscous", aisle: "Bakery" },
+  { word: "semolina", aisle: "Bakery" },
+  { word: "flour", aisle: "Pantry" },
+  { word: "cumin", aisle: "Spices" },
+  { word: "paprika", aisle: "Spices" },
+  { word: "cinnamon", aisle: "Spices" },
+  { word: "turmeric", aisle: "Spices" },
+  { word: "ras el hanout", aisle: "Spices" },
+  { word: "saffron", aisle: "Spices" },
+  { word: "ginger", aisle: "Spices" },
+  { word: "fenugreek", aisle: "Spices" },
+  { word: "pepper", aisle: "Produce" },
+  { word: "tomato", aisle: "Produce" },
+  { word: "onion", aisle: "Produce" },
+  { word: "garlic", aisle: "Produce" },
+  { word: "carrot", aisle: "Produce" },
+  { word: "courgette", aisle: "Produce" },
+  { word: "cucumber", aisle: "Produce" },
+  { word: "potato", aisle: "Produce" },
+  { word: "parsley", aisle: "Produce" },
+  { word: "coriander", aisle: "Produce" },
+  { word: "mint", aisle: "Produce" },
+  { word: "lemon", aisle: "Produce" },
+  { word: "orange", aisle: "Produce" },
+  { word: "banana", aisle: "Produce" },
+  { word: "apple", aisle: "Produce" },
+  { word: "aubergine", aisle: "Produce" },
+  { word: "pumpkin", aisle: "Produce" },
+  { word: "celery", aisle: "Produce" },
+  { word: "date", aisle: "Produce" },
+];
+
+export function aisleFor(name: string, given: string) {
+  if (GROCERY_ORDER.includes(given) && given !== "Other") return given;
+  const needle = name.trim().toLowerCase();
+  return AISLE_WORDS.find((a) => needle.includes(a.word))?.aisle ?? "Pantry";
+}
+
+type Line = {
+  name: string;
+  category: string;
+  grams: number;
+  ml: number;
+  pieces: number;
+  vague: { text: string; times: number } | null;
+};
+
+/**
+ * The real shopping list: every ingredient the plan needs, added up into one
+ * honest quantity per item (400 g + 250 g = 650 g, not "400 g × 2").
+ */
 export function buildGroceryList(
   entries: { recipes: Recipe | null; portions: Record<string, number> }[],
 ) {
-  const map = new Map<string, { name: string; category: string; amounts: string[]; times: number }>();
+  const map = new Map<string, Line>();
+
   entries.forEach((entry) => {
     const recipe = entry.recipes;
     if (!recipe) return;
     const totalPortions = Object.values(entry.portions ?? {}).reduce((a, b) => a + b, 0) || 1;
-    const batches = Math.max(1, Math.round(totalPortions / Math.max(1, recipe.base_servings) * 10) / 10);
+    const batches = Math.max(0.5, Math.round((totalPortions / Math.max(1, recipe.base_servings)) * 20) / 20);
+
     recipe.ingredients.forEach((ing) => {
       const key = ing.name.trim().toLowerCase();
-      const existing = map.get(key);
-      if (existing) {
-        existing.times += batches;
-        if (!existing.amounts.includes(ing.amount)) existing.amounts.push(ing.amount);
-      } else {
-        map.set(key, {
+      const line =
+        map.get(key) ??
+        ({
           name: ing.name,
-          category: ing.category || "Other",
-          amounts: [ing.amount],
-          times: batches,
-        });
-      }
+          category: aisleFor(ing.name, ing.category),
+          grams: 0,
+          ml: 0,
+          pieces: 0,
+          vague: null,
+        } satisfies Line);
+
+      const parsed = parseAmount(ing.amount);
+      if (!parsed) {
+        line.vague = { text: ing.amount, times: (line.vague?.times ?? 0) + batches };
+      } else if (parsed.unit === "g") line.grams += parsed.value * batches;
+      else if (parsed.unit === "ml") line.ml += parsed.value * batches;
+      else line.pieces += parsed.value * batches;
+
+      map.set(key, line);
     });
   });
 
   return [...map.values()]
-    .map((item) => ({
-      name: item.name,
-      category: GROCERY_ORDER.includes(item.category) ? item.category : "Other",
-      amount:
-        item.times > 1.4
-          ? `${item.amounts[0]} × ${Math.round(item.times * 10) / 10}`
-          : (item.amounts[0] ?? ""),
-    }))
+    .map((line) => {
+      const parts: string[] = [];
+      if (line.grams > 0) parts.push(formatStock(Math.ceil(line.grams / 10) * 10, "g"));
+      if (line.ml > 0) parts.push(formatStock(Math.ceil(line.ml / 10) * 10, "ml"));
+      if (line.pieces > 0) parts.push(`${Math.ceil(line.pieces)} pc`);
+      if (!parts.length && line.vague)
+        parts.push(
+          line.vague.times > 1.4
+            ? `${line.vague.text} (×${Math.round(line.vague.times)})`
+            : line.vague.text,
+        );
+      return { name: line.name, category: line.category, amount: parts.join(" + ") };
+    })
     .sort(
       (a, b) =>
         GROCERY_ORDER.indexOf(a.category) - GROCERY_ORDER.indexOf(b.category) ||
