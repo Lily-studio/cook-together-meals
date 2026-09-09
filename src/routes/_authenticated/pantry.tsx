@@ -7,7 +7,10 @@ import { useApp } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { thisWeekStart, useGroceryMutations } from "@/lib/db";
+import { thisWeekStart, useGroceryMutations, useRecipes, useSetPlanEntry } from "@/lib/db";
+import { cookFromFridge } from "@/lib/lily-brain";
+import { isoDate } from "@/lib/nutrition";
+import { portionsFor } from "@/lib/planner";
 import { formatStock } from "@/lib/portions";
 import { lowStock, usePantry, usePantryMutations, type PantryItem } from "@/lib/pantry";
 import { cn } from "@/lib/utils";
@@ -36,10 +39,28 @@ export const Route = createFileRoute("/_authenticated/pantry")({
 const UNITS = ["g", "ml", "pc"] as const;
 
 function PantryPage() {
-  const { householdId } = useApp();
+  const { householdId, people } = useApp();
   const { data: items = [], isLoading } = usePantry(householdId);
   const { add, update, remove } = usePantryMutations(householdId);
   const grocery = useGroceryMutations(householdId, thisWeekStart());
+  const { data: recipes = [] } = useRecipes();
+  const setEntry = useSetPlanEntry();
+  const fridgeIdeas = useMemo(() => cookFromFridge(recipes, items), [recipes, items]);
+
+  const cookTonight = (recipeId: string, title: string) => {
+    const recipe = recipes.find((r) => r.id === recipeId);
+    if (!recipe || !householdId) return;
+    setEntry.mutate(
+      {
+        household_id: householdId,
+        plan_date: isoDate(new Date()),
+        slot: "dinner",
+        recipe_id: recipe.id,
+        portions: portionsFor(people, "dinner", recipe),
+      },
+      { onSuccess: () => toast.success(`${title} is tonight's dinner 🌼`) },
+    );
+  };
 
   const [name, setName] = useState("");
   const [qty, setQty] = useState("");
@@ -110,6 +131,36 @@ function PantryPage() {
                 </span>
                 <Button size="sm" variant="secondary" className="h-8 rounded-full" onClick={() => restock(item)}>
                   <ShoppingBasket className="mr-1 size-3.5" /> Add
+                </Button>
+              </div>
+            ))}
+          </Card>
+        </>
+      ) : null}
+
+      {fridgeIdeas.length ? (
+        <>
+          <SectionTitle>What's in my fridge?</SectionTitle>
+          <Card className="grid gap-2">
+            <p className="text-[13px] text-muted-foreground">
+              With what you have right now, I could make these — tap one and it becomes tonight's dinner.
+            </p>
+            {fridgeIdeas.map((idea) => (
+              <div key={idea.recipe.id} className="flex items-center gap-2 rounded-2xl bg-secondary/40 p-2.5">
+                <span aria-hidden>{idea.recipe.emoji}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-semibold">{idea.recipe.title}</span>
+                  <span className="block truncate text-[11px] text-muted-foreground">
+                    {idea.have} of {idea.total} ingredients at home
+                    {idea.missing.length ? ` · still need ${idea.missing.join(", ").toLowerCase()}` : " · nothing missing!"}
+                  </span>
+                </span>
+                <Button
+                  size="sm"
+                  className="h-8 shrink-0 rounded-full"
+                  onClick={() => cookTonight(idea.recipe.id, idea.recipe.title)}
+                >
+                  Cook it
                 </Button>
               </div>
             ))}

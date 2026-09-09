@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { PlanMonthButton } from "@/components/plan-month-button";
 import { useGrocery, useGroceryMutations, usePlan } from "@/lib/db";
+import { sameIngredient, usePantry } from "@/lib/pantry";
 import { isoDate, startOfWeek, weekDates } from "@/lib/nutrition";
 import { GROCERY_ORDER, buildGroceryList } from "@/lib/planner";
 import { cn } from "@/lib/utils";
@@ -78,10 +79,23 @@ function GroceryPage() {
   );
 
   const monthList = useMemo(() => buildGroceryList(allEntries), [allEntries]);
-  const monthGrouped = GROCERY_ORDER.map((cat) => ({
-    cat,
-    rows: monthList.filter((i) => i.category === cat),
-  })).filter((g) => g.rows.length);
+  const stock = usePantry(householdId);
+
+  // Three honest piles: what you already have, the big monthly shop, and the
+  // fresh things that are better bought week by week.
+  const MONTHLY_AISLES = ["Pantry", "Spices", "Other"];
+  const monthPiles = useMemo(() => {
+    const inStock = (stock.data ?? []).filter((s) => s.quantity > 0);
+    const have: typeof monthList = [];
+    const monthly: typeof monthList = [];
+    const fresh: typeof monthList = [];
+    monthList.forEach((item) => {
+      if (inStock.some((s) => sameIngredient(s.name, item.name))) have.push(item);
+      else if (MONTHLY_AISLES.includes(item.category)) monthly.push(item);
+      else fresh.push(item);
+    });
+    return { have, monthly, fresh };
+  }, [monthList, stock.data]);
 
   const rebuild = async () => {
     setBusy(true);
@@ -149,25 +163,38 @@ function GroceryPage() {
               ? `Everything for ${monthLabel} added up — ${monthList.length} things, duplicates combined so you buy once.`
               : "Tap “Replan month” and I'll fill four weeks, then add all the shopping up for you."}
           </LilySays>
-          <div className="mt-4 grid gap-4">
-            {monthGrouped.map((group) => (
-              <div key={group.cat}>
-                <p className="mb-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-                  {AISLES[group.cat] ?? group.cat}
-                </p>
-                <ul className="grid gap-1.5">
-                  {group.rows.map((item) => (
-                    <li
-                      key={item.name}
-                      className="flex items-center gap-3 rounded-2xl bg-card p-3 shadow-soft"
-                    >
-                      <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{item.name}</span>
-                      <span className="shrink-0 text-[12px] text-muted-foreground">{item.amount}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <div className="mt-4 grid gap-5">
+            {(
+              [
+                ["🛒 Buy once for the whole month", monthPiles.monthly, "Dry things that keep — one big shop."],
+                ["🥬 Buy fresh, week by week", monthPiles.fresh, "Better bought closer to when you cook it."],
+                ["✅ Already in your kitchen", monthPiles.have, "You told me you have these, so don't buy them again."],
+              ] as const
+            )
+              .filter(([, rows]) => rows.length)
+              .map(([heading, rows, hint]) => (
+                <div key={heading}>
+                  <p className="font-display text-[15px] font-semibold">{heading}</p>
+                  <p className="mb-2 text-[12px] text-muted-foreground">{hint}</p>
+                  <ul className="grid gap-1.5">
+                    {rows.map((item) => (
+                      <li
+                        key={item.name}
+                        className={cn(
+                          "flex items-center gap-3 rounded-2xl p-3 shadow-soft",
+                          heading.startsWith("✅") ? "bg-olive/10" : "bg-card",
+                        )}
+                      >
+                        <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{item.name}</span>
+                        <span className="shrink-0 text-[11px] text-muted-foreground">
+                          {AISLES[item.category] ?? item.category}
+                        </span>
+                        <span className="shrink-0 text-[12px] font-semibold tabular-nums">{item.amount}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
           </div>
         </>
       ) : list.length === 0 ? (
