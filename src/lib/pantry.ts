@@ -12,6 +12,10 @@ export type PantryItem = {
   unit: string;
   low_threshold: number;
   staple: boolean;
+  /** When the jar/packet was opened, so Lily can prioritise using it up. */
+  opened_on?: string | null;
+  /** Best before, so nothing quietly goes off at the back of the fridge. */
+  expires_on?: string | null;
 };
 
 const db = supabase as unknown as { from: (table: string) => any };
