@@ -74,9 +74,19 @@ function GroceryPage() {
   };
 
   const list = items.data ?? [];
-  const grouped = GROCERY_ORDER.map((cat) => ({ cat, rows: list.filter((i) => i.category === cat) })).filter(
-    (g) => g.rows.length,
+  const [shopMode, setShopMode] = useState(false);
+  const stockForMission = usePantry(householdId);
+  const mission = useMemo(
+    () => shoppingMission({ items: list, pantry: stockForMission.data ?? [] }),
+    [list, stockForMission.data],
   );
+  const grouped = shopMode
+    ? mission.groups.map((g) => ({ cat: g.heading, hint: g.hint, rows: g.rows }))
+    : GROCERY_ORDER.map((cat) => ({
+        cat,
+        hint: "",
+        rows: list.filter((i) => i.category === cat),
+      })).filter((g) => g.rows.length);
 
   const monthList = useMemo(() => buildGroceryList(allEntries), [allEntries]);
   const stock = usePantry(householdId);
