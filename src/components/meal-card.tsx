@@ -60,6 +60,7 @@ export function MealCard({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [swapFor, setSwapFor] = useState<{ name: string; amount: string } | null>(null);
+  const [cookOpen, setCookOpen] = useState(false);
 
   const recipe = entry?.recipes ?? null;
   const swaps = entry?.swaps ?? {};
