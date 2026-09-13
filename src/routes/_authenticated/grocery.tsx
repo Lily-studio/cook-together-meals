@@ -13,6 +13,7 @@ import { useGrocery, useGroceryMutations, usePlan } from "@/lib/db";
 import { sameIngredient, usePantry } from "@/lib/pantry";
 import { isoDate, startOfWeek, weekDates } from "@/lib/nutrition";
 import { GROCERY_ORDER, buildGroceryList } from "@/lib/planner";
+import { shoppingMission } from "@/lib/quick";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/grocery")({
