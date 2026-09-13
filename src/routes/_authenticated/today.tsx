@@ -447,7 +447,7 @@ function Today() {
           </ul>
           <p className="mt-2 rounded-2xl bg-butter/45 px-3 py-2 text-[12px]">
             {defrostTonight.length
-              ? `🧊 Take ${defrostTonight.join(" and ")} out of the freezer tonight.`
+              ? `🧊 Take out tonight: ${defrostTonight.map((d) => `${d.amount} ${d.name.toLowerCase()}`).join(", ")} — for ${defrostTonight[0]!.meal.toLowerCase()}.`
               : "Nothing to prepare tonight — tomorrow cooks from fresh."}
           </p>
         </Card>

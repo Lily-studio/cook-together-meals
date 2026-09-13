@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Check,
+  ChefHat,
   ChevronDown,
   Clock,
   Minus,
@@ -14,6 +15,8 @@ import {
 import { toast } from "sonner";
 import { Card } from "@/components/app-shell";
 import { accentOf, useApp } from "@/components/app-context";
+import { CookingMode } from "@/components/cooking-mode";
+import { MealCost } from "@/components/meal-cost";
 import { RecipePicker } from "@/components/recipe-picker";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
