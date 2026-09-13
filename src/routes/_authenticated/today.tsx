@@ -1,14 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, MessageCircleHeart, MessagesSquare, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell, Card, SectionTitle } from "@/components/app-shell";
 import { accentOf, useApp } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
+import { LilyQuick } from "@/components/lily-quick";
 import { CalorieRing, MacroBar } from "@/components/macro";
 import { MealCard } from "@/components/meal-card";
 import { PlanMonthButton } from "@/components/plan-month-button";
-import { useDeleteLog, useLogs, usePlan, usePrepBatches, usePrepMutations } from "@/lib/db";
+import { Button } from "@/components/ui/button";
+import {
+  useDeleteLog,
+  useFavorites,
+  useLogs,
+  usePlan,
+  usePrepBatches,
+  usePrepMutations,
+  useRecipes,
+  useSetPlanEntry,
+  useUpdatePlanEntry,
+} from "@/lib/db";
 import { lowStock, usePantry } from "@/lib/pantry";
+import { defrostList, leftoverIdeas, openedToUse, repetitionIssues } from "@/lib/quick";
+import { portionsFor } from "@/lib/planner";
 import { SLOTS, SLOT_LABELS, dayLabel, isoDate, prettyDate } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
@@ -88,15 +103,56 @@ function Today() {
   const tomorrowIso = useMemo(() => isoDate(addDays(date, 1)), [date]);
   const tomorrowPlan = usePlan(householdId, tomorrowIso, tomorrowIso);
   const tomorrowEntries = tomorrowPlan.data ?? [];
-  const defrostTonight = useMemo(() => {
-    const names = new Set<string>();
-    tomorrowEntries.forEach((e) =>
-      (e.recipes?.ingredients ?? []).forEach((ing) => {
-        if (ing.category === "Meat" || ing.category === "Fish") names.add(ing.name.toLowerCase());
-      }),
-    );
-    return [...names].slice(0, 3);
-  }, [tomorrowEntries]);
+  const defrostTonight = useMemo(
+    () => defrostList(tomorrowEntries, people.length || 2),
+    [tomorrowEntries, people.length],
+  );
+
+  // The wider month: what she's about to serve too often, and yesterday's leftovers.
+  const monthRange = useMemo(
+    () => ({ from: isoDate(addDays(todayIso, -3)), to: isoDate(addDays(todayIso, 27)) }),
+    [todayIso],
+  );
+  const monthPlan = usePlan(householdId, monthRange.from, monthRange.to);
+  const { data: recipes = [] } = useRecipes();
+  const favorites = useFavorites(householdId);
+  const updateEntry = useUpdatePlanEntry();
+  const setEntry = useSetPlanEntry();
+
+  const monthEntries = monthPlan.data ?? [];
+  const favIds = (favorites.data ?? []).map((f) => f.recipe_id);
+  const repeats = useMemo(
+    () =>
+      recipes.length
+        ? repetitionIssues({
+            entries: monthEntries,
+            recipes,
+            today: todayIso,
+            favouriteRecipeIds: favIds,
+            max: 1,
+          })
+        : [],
+    [monthEntries, recipes, todayIso, favIds.join(",")],
+  );
+  const leftovers = useMemo(
+    () =>
+      recipes.length
+        ? leftoverIdeas({
+            recent: monthEntries.filter((e) => e.plan_date < date && e.plan_date >= monthRange.from),
+            recipes,
+            people: people.length || 2,
+            max: 1,
+          })
+        : [],
+    [monthEntries, recipes, date, monthRange.from, people.length],
+  );
+  const opened = useMemo(
+    () =>
+      openedToUse({ pantry: pantry.data ?? [], entries: monthEntries, recipes, today: todayIso }).filter(
+        (o) => o.urgent,
+      ),
+    [pantry.data, monthEntries, recipes, todayIso],
+  );
 
   return (
     <AppShell
@@ -155,6 +211,98 @@ function Today() {
           ? "It's all planned — open a meal for the exact quantities, and tap the fork once it's eaten."
           : "I haven't planned this day yet. One tap and I'll fill four whole weeks for you."}
       </LilySays>
+
+      <LilyQuick date={date} entries={entries} />
+
+      {opened.length ? (
+        <Card className="mt-3 bg-terracotta/10">
+          <p className="font-display text-[15px] font-semibold">Use this first 🫙</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {opened[0]!.item.name}
+            {opened[0]!.daysLeft !== null
+              ? ` — ${opened[0]!.daysLeft <= 0 ? "today's the last day" : `${opened[0]!.daysLeft} day${opened[0]!.daysLeft === 1 ? "" : "s"} left`}`
+              : ` — opened ${opened[0]!.daysOpen} day${opened[0]!.daysOpen === 1 ? "" : "s"} ago`}
+            .{" "}
+            {opened[0]!.usedIn
+              ? `Already in your ${SLOT_LABELS[opened[0]!.usedIn!.slot]?.toLowerCase() ?? "plan"} on ${opened[0]!.usedIn!.date}.`
+              : "Not in the plan yet — shall we use it?"}
+          </p>
+          {!opened[0]!.usedIn && opened[0]!.ideas.length ? (
+            <Button
+              size="sm"
+              className="mt-2 rounded-full"
+              onClick={() => {
+                const rec = opened[0]!.ideas[0]!;
+                if (!householdId) return;
+                setEntry.mutate(
+                  {
+                    household_id: householdId,
+                    plan_date: date,
+                    slot: "dinner",
+                    recipe_id: rec.id,
+                    portions: portionsFor(people, "dinner", rec),
+                  },
+                  { onSuccess: () => toast.success(`${rec.title} tonight — nothing wasted 🌼`) },
+                );
+              }}
+            >
+              Make {opened[0]!.ideas[0]!.title}
+            </Button>
+          ) : null}
+        </Card>
+      ) : null}
+
+      {leftovers.length ? (
+        <Card className="mt-3 bg-butter/40">
+          <p className="font-display text-[15px] font-semibold">Yesterday's leftovers, reinvented</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            You've roughly {leftovers[0]!.grams} g of cooked {leftovers[0]!.protein} from{" "}
+            {leftovers[0]!.from.title.toLowerCase()}. It would be lovely as {leftovers[0]!.ideas[0]!.title}.
+          </p>
+          <Button
+            size="sm"
+            className="mt-2 rounded-full"
+            onClick={() => {
+              const rec = leftovers[0]!.ideas[0]!;
+              if (!householdId) return;
+              setEntry.mutate(
+                {
+                  household_id: householdId,
+                  plan_date: date,
+                  slot: "lunch",
+                  recipe_id: rec.id,
+                  portions: portionsFor(people, "lunch", rec),
+                },
+                { onSuccess: () => toast.success(`${rec.title} it is — no waste 🌼`) },
+              );
+            }}
+          >
+            Turn it into that
+          </Button>
+        </Card>
+      ) : null}
+
+      {repeats.length ? (
+        <Card className="mt-3">
+          <p className="font-display text-[15px] font-semibold">Bored of this one? 🤔</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">{repeats[0]!.note}</p>
+          <div className="mt-2 flex gap-2">
+            <Button
+              size="sm"
+              className="rounded-full"
+              onClick={() =>
+                updateEntry.mutate(
+                  { id: repeats[0]!.entryId, values: { recipe_id: repeats[0]!.replacement.id, swaps: {} } },
+                  { onSuccess: () => toast.success(`Swapped for ${repeats[0]!.replacement.title} 🌼`) },
+                )
+              }
+            >
+              Yes please
+            </Button>
+          </div>
+        </Card>
+      ) : null}
+
 
       {planned === 0 ? (
         <Card className="mt-4 text-center">
@@ -299,7 +447,7 @@ function Today() {
           </ul>
           <p className="mt-2 rounded-2xl bg-butter/45 px-3 py-2 text-[12px]">
             {defrostTonight.length
-              ? `🧊 Take ${defrostTonight.join(" and ")} out of the freezer tonight.`
+              ? `🧊 Take out tonight: ${defrostTonight.map((d) => `${d.amount} ${d.name.toLowerCase()}`).join(", ")} — for ${defrostTonight[0]!.meal.toLowerCase()}.`
               : "Nothing to prepare tonight — tomorrow cooks from fresh."}
           </p>
         </Card>
