@@ -212,6 +212,98 @@ function Today() {
           : "I haven't planned this day yet. One tap and I'll fill four whole weeks for you."}
       </LilySays>
 
+      <LilyQuick date={date} entries={entries} />
+
+      {opened.length ? (
+        <Card className="mt-3 bg-terracotta/10">
+          <p className="font-display text-[15px] font-semibold">Use this first 🫙</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {opened[0]!.item.name}
+            {opened[0]!.daysLeft !== null
+              ? ` — ${opened[0]!.daysLeft <= 0 ? "today's the last day" : `${opened[0]!.daysLeft} day${opened[0]!.daysLeft === 1 ? "" : "s"} left`}`
+              : ` — opened ${opened[0]!.daysOpen} day${opened[0]!.daysOpen === 1 ? "" : "s"} ago`}
+            .{" "}
+            {opened[0]!.usedIn
+              ? `Already in your ${SLOT_LABELS[opened[0]!.usedIn!.slot]?.toLowerCase() ?? "plan"} on ${opened[0]!.usedIn!.date}.`
+              : "Not in the plan yet — shall we use it?"}
+          </p>
+          {!opened[0]!.usedIn && opened[0]!.ideas.length ? (
+            <Button
+              size="sm"
+              className="mt-2 rounded-full"
+              onClick={() => {
+                const rec = opened[0]!.ideas[0]!;
+                if (!householdId) return;
+                setEntry.mutate(
+                  {
+                    household_id: householdId,
+                    plan_date: date,
+                    slot: "dinner",
+                    recipe_id: rec.id,
+                    portions: portionsFor(people, "dinner", rec),
+                  },
+                  { onSuccess: () => toast.success(`${rec.title} tonight — nothing wasted 🌼`) },
+                );
+              }}
+            >
+              Make {opened[0]!.ideas[0]!.title}
+            </Button>
+          ) : null}
+        </Card>
+      ) : null}
+
+      {leftovers.length ? (
+        <Card className="mt-3 bg-butter/40">
+          <p className="font-display text-[15px] font-semibold">Yesterday's leftovers, reinvented</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            You've roughly {leftovers[0]!.grams} g of cooked {leftovers[0]!.protein} from{" "}
+            {leftovers[0]!.from.title.toLowerCase()}. It would be lovely as {leftovers[0]!.ideas[0]!.title}.
+          </p>
+          <Button
+            size="sm"
+            className="mt-2 rounded-full"
+            onClick={() => {
+              const rec = leftovers[0]!.ideas[0]!;
+              if (!householdId) return;
+              setEntry.mutate(
+                {
+                  household_id: householdId,
+                  plan_date: date,
+                  slot: "lunch",
+                  recipe_id: rec.id,
+                  portions: portionsFor(people, "lunch", rec),
+                },
+                { onSuccess: () => toast.success(`${rec.title} it is — no waste 🌼`) },
+              );
+            }}
+          >
+            Turn it into that
+          </Button>
+        </Card>
+      ) : null}
+
+      {repeats.length ? (
+        <Card className="mt-3">
+          <p className="font-display text-[15px] font-semibold">Bored of this one? 🤔</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">{repeats[0]!.note}</p>
+          <div className="mt-2 flex gap-2">
+            <Button
+              size="sm"
+              className="rounded-full"
+              onClick={() =>
+                updateEntry.mutate(
+                  { id: repeats[0]!.entryId, values: { recipe_id: repeats[0]!.replacement.id, swaps: {} } },
+                  { onSuccess: () => toast.success(`Swapped for ${repeats[0]!.replacement.title} 🌼`) },
+                )
+              }
+            >
+              Yes please
+            </Button>
+          </div>
+        </Card>
+      ) : null}
+
+
       {planned === 0 ? (
         <Card className="mt-4 text-center">
           <p className="font-display text-[17px] font-semibold">Nothing planned here yet</p>
