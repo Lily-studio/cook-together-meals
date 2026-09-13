@@ -218,34 +218,75 @@ function PantryPage() {
       ) : (
         <Card className="grid gap-1.5">
           {items.map((item) => (
-            <div key={item.id} className="flex items-center gap-2 rounded-2xl bg-secondary/40 px-2.5 py-2">
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold">{item.name}</span>
-              <span className="flex items-center gap-1 rounded-full bg-card px-1.5 py-0.5">
-                <button
-                  onClick={() => step(item, -1)}
-                  aria-label={`Less ${item.name}`}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <Minus className="size-3.5" />
-                </button>
-                <span className="w-16 text-center text-[11px] font-semibold tabular-nums">
-                  {formatStock(item.quantity, item.unit)}
+            <div key={item.id} className="grid gap-1.5 rounded-2xl bg-secondary/40 px-2.5 py-2">
+              <div className="flex items-center gap-2">
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold">{item.name}</span>
+                <span className="flex items-center gap-1 rounded-full bg-card px-1.5 py-0.5">
+                  <button
+                    onClick={() => step(item, -1)}
+                    aria-label={`Less ${item.name}`}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <Minus className="size-3.5" />
+                  </button>
+                  <span className="w-16 text-center text-[11px] font-semibold tabular-nums">
+                    {formatStock(item.quantity, item.unit)}
+                  </span>
+                  <button
+                    onClick={() => step(item, 1)}
+                    aria-label={`More ${item.name}`}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <Plus className="size-3.5" />
+                  </button>
                 </span>
                 <button
-                  onClick={() => step(item, 1)}
-                  aria-label={`More ${item.name}`}
-                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => remove.mutate(item.id)}
+                  aria-label={`Remove ${item.name}`}
+                  className="text-muted-foreground hover:text-terracotta"
                 >
-                  <Plus className="size-3.5" />
+                  <Trash2 className="size-4" />
                 </button>
-              </span>
-              <button
-                onClick={() => remove.mutate(item.id)}
-                aria-label={`Remove ${item.name}`}
-                className="text-muted-foreground hover:text-terracotta"
-              >
-                <Trash2 className="size-4" />
-              </button>
+              </div>
+              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                <button
+                  onClick={() =>
+                    update.mutate(
+                      {
+                        id: item.id,
+                        values: { opened_on: item.opened_on ? null : isoDate(new Date()) },
+                      },
+                      {
+                        onSuccess: () =>
+                          toast.success(
+                            item.opened_on ? `${item.name} marked unopened` : `${item.name} — I'll use it first 🌼`,
+                          ),
+                      },
+                    )
+                  }
+                  className={cn(
+                    "rounded-full px-2 py-1 font-semibold transition-colors",
+                    item.opened_on ? "bg-caramel/15 text-caramel" : "bg-card text-muted-foreground",
+                  )}
+                >
+                  {item.opened_on ? `Opened ${item.opened_on}` : "Just opened it"}
+                </button>
+                <label className="flex items-center gap-1">
+                  <span>Best before</span>
+                  <input
+                    type="date"
+                    value={item.expires_on ?? ""}
+                    onChange={(e) =>
+                      update.mutate({
+                        id: item.id,
+                        values: { expires_on: e.target.value || null },
+                      })
+                    }
+                    aria-label={`Best before date for ${item.name}`}
+                    className="rounded-full bg-card px-2 py-1 text-[11px]"
+                  />
+                </label>
+              </div>
             </div>
           ))}
         </Card>
