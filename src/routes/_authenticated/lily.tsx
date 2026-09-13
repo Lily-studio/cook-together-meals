@@ -1,11 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { Compass, MessageCircleHeart, MessagesSquare, Package, Settings, Soup } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell, Card, SectionTitle } from "@/components/app-shell";
 import { useApp, accentOf } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
-import { useLogs } from "@/lib/db";
-import { isoDate } from "@/lib/nutrition";
+import { ShowLily } from "@/components/show-lily";
+import { Button } from "@/components/ui/button";
+import {
+  useFavorites,
+  useGrocery,
+  useLogs,
+  usePlan,
+  usePrepBatches,
+  useRecipes,
+  useSetPlanEntry,
+  thisWeekStart,
+} from "@/lib/db";
+import { usePantry } from "@/lib/pantry";
+import { portionsFor } from "@/lib/planner";
+import { monthSummary, weeklySurprise } from "@/lib/quick";
+import { isoDate, startOfWeek } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/lily")({
