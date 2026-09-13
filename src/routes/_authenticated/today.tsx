@@ -103,15 +103,56 @@ function Today() {
   const tomorrowIso = useMemo(() => isoDate(addDays(date, 1)), [date]);
   const tomorrowPlan = usePlan(householdId, tomorrowIso, tomorrowIso);
   const tomorrowEntries = tomorrowPlan.data ?? [];
-  const defrostTonight = useMemo(() => {
-    const names = new Set<string>();
-    tomorrowEntries.forEach((e) =>
-      (e.recipes?.ingredients ?? []).forEach((ing) => {
-        if (ing.category === "Meat" || ing.category === "Fish") names.add(ing.name.toLowerCase());
-      }),
-    );
-    return [...names].slice(0, 3);
-  }, [tomorrowEntries]);
+  const defrostTonight = useMemo(
+    () => defrostList(tomorrowEntries, people.length || 2),
+    [tomorrowEntries, people.length],
+  );
+
+  // The wider month: what she's about to serve too often, and yesterday's leftovers.
+  const monthRange = useMemo(
+    () => ({ from: isoDate(addDays(todayIso, -3)), to: isoDate(addDays(todayIso, 27)) }),
+    [todayIso],
+  );
+  const monthPlan = usePlan(householdId, monthRange.from, monthRange.to);
+  const { data: recipes = [] } = useRecipes();
+  const favorites = useFavorites(householdId);
+  const updateEntry = useUpdatePlanEntry();
+  const setEntry = useSetPlanEntry();
+
+  const monthEntries = monthPlan.data ?? [];
+  const favIds = (favorites.data ?? []).map((f) => f.recipe_id);
+  const repeats = useMemo(
+    () =>
+      recipes.length
+        ? repetitionIssues({
+            entries: monthEntries,
+            recipes,
+            today: todayIso,
+            favouriteRecipeIds: favIds,
+            max: 1,
+          })
+        : [],
+    [monthEntries, recipes, todayIso, favIds.join(",")],
+  );
+  const leftovers = useMemo(
+    () =>
+      recipes.length
+        ? leftoverIdeas({
+            recent: monthEntries.filter((e) => e.plan_date < date && e.plan_date >= monthRange.from),
+            recipes,
+            people: people.length || 2,
+            max: 1,
+          })
+        : [],
+    [monthEntries, recipes, date, monthRange.from, people.length],
+  );
+  const opened = useMemo(
+    () =>
+      openedToUse({ pantry: pantry.data ?? [], entries: monthEntries, recipes, today: todayIso }).filter(
+        (o) => o.urgent,
+      ),
+    [pantry.data, monthEntries, recipes, todayIso],
+  );
 
   return (
     <AppShell
