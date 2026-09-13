@@ -1,14 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight, MessageCircleHeart, MessagesSquare, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell, Card, SectionTitle } from "@/components/app-shell";
 import { accentOf, useApp } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
+import { LilyQuick } from "@/components/lily-quick";
 import { CalorieRing, MacroBar } from "@/components/macro";
 import { MealCard } from "@/components/meal-card";
 import { PlanMonthButton } from "@/components/plan-month-button";
-import { useDeleteLog, useLogs, usePlan, usePrepBatches, usePrepMutations } from "@/lib/db";
+import { Button } from "@/components/ui/button";
+import {
+  useDeleteLog,
+  useFavorites,
+  useLogs,
+  usePlan,
+  usePrepBatches,
+  usePrepMutations,
+  useRecipes,
+  useSetPlanEntry,
+  useUpdatePlanEntry,
+} from "@/lib/db";
 import { lowStock, usePantry } from "@/lib/pantry";
+import { defrostList, leftoverIdeas, openedToUse, repetitionIssues } from "@/lib/quick";
+import { portionsFor } from "@/lib/planner";
 import { SLOTS, SLOT_LABELS, dayLabel, isoDate, prettyDate } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
