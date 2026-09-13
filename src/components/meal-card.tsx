@@ -332,7 +332,28 @@ export function MealCard({
               </li>
             </ul>
           ) : null}
+
+          <button
+            onClick={() => setCookOpen(true)}
+            className="mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-full bg-caramel px-4 py-2.5 text-[13px] font-semibold text-caramel-foreground transition-transform active:scale-[0.99]"
+          >
+            <ChefHat className="size-4" /> Cook it with me
+          </button>
+
+          <MealCost recipe={recipe} batches={split.batches} className="mt-2" swaps={swaps} />
         </div>
+      ) : null}
+
+      {recipe ? (
+        <CookingMode
+          open={cookOpen}
+          onOpenChange={setCookOpen}
+          recipe={recipe}
+          entryId={entry?.id}
+          people={shown.map((p) => ({ id: p.id, display_name: p.display_name }))}
+          portions={portions}
+          swaps={swaps}
+        />
       ) : null}
 
       <RecipePicker
