@@ -255,9 +255,10 @@ export function buildGroceryList(
     const batches = Math.max(0.5, Math.round((totalPortions / Math.max(1, recipe.base_servings)) * 20) / 20);
 
     recipe.ingredients.forEach((ing) => {
-      const key = ing.name.trim().toLowerCase();
-      if (NOT_SHOPPING.some((w) => key === w || key.startsWith(`${w} `) || key.endsWith(` ${w}`)))
+      const plain = ing.name.trim().toLowerCase();
+      if (NOT_SHOPPING.some((w) => plain === w || plain.startsWith(`${w} `) || plain.endsWith(` ${w}`)))
         return;
+      const key = shoppingKey(ing.name);
       const line =
         map.get(key) ??
         ({
