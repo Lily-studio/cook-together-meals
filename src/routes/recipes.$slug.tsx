@@ -27,6 +27,7 @@ function RecipePage() {
   const { data: recipe, isLoading } = useRecipe(slug);
   const { people } = useApp();
   const slot = recipe?.meal_types?.[0] ?? "dinner";
+  const [cookOpen, setCookOpen] = useState(false);
   const split =
     recipe && people.length ? splitDish(recipe, people, portionsFor(people, slot, recipe)) : null;
 
