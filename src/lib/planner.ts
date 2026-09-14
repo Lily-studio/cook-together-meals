@@ -224,6 +224,18 @@ type Line = {
 /** Things nobody buys by the gram: tap water, salt, seasoning "to taste". */
 const NOT_SHOPPING = ["water", "salt", "ice", "to taste"];
 
+/**
+ * "Tomatoes", "tomato", "Tomato, chopped" are all one thing at the shop, so they
+ * become one line with one total.
+ */
+function shoppingKey(name: string) {
+  let key = name.trim().toLowerCase().split(",")[0]!.trim();
+  key = key.replace(/\b(fresh|chopped|sliced|grated|ripe|large|small|tinned|ground)\b/g, "").trim();
+  key = key.replace(/\s+/g, " ");
+  const words = key.split(" ").map((w) => (w.length > 3 && w.endsWith("es") ? w.slice(0, -2) : w.length > 3 && w.endsWith("s") ? w.slice(0, -1) : w));
+  return words.join(" ") || name.trim().toLowerCase();
+}
+
 /** Spoons and pinches become millilitres and grams so totals add up properly. */
 function spoonsToMetric(amount: string) {
   const raw = (amount ?? "").toLowerCase();
@@ -255,9 +267,10 @@ export function buildGroceryList(
     const batches = Math.max(0.5, Math.round((totalPortions / Math.max(1, recipe.base_servings)) * 20) / 20);
 
     recipe.ingredients.forEach((ing) => {
-      const key = ing.name.trim().toLowerCase();
-      if (NOT_SHOPPING.some((w) => key === w || key.startsWith(`${w} `) || key.endsWith(` ${w}`)))
+      const plain = ing.name.trim().toLowerCase();
+      if (NOT_SHOPPING.some((w) => plain === w || plain.startsWith(`${w} `) || plain.endsWith(` ${w}`)))
         return;
+      const key = shoppingKey(ing.name);
       const line =
         map.get(key) ??
         ({

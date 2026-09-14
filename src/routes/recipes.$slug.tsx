@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Clock, Users } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, ChefHat, Clock, Users } from "lucide-react";
 import { LilyBeside, LilySays } from "@/components/lily";
 import { useApp } from "@/components/app-context";
+import { CookingMode } from "@/components/cooking-mode";
+import { MealCost } from "@/components/meal-cost";
+import { Button } from "@/components/ui/button";
 import { useRecipe } from "@/lib/db";
 import { portionsFor } from "@/lib/planner";
 import { formatGrams, splitDish } from "@/lib/dish";
@@ -23,6 +27,7 @@ function RecipePage() {
   const { data: recipe, isLoading } = useRecipe(slug);
   const { people } = useApp();
   const slot = recipe?.meal_types?.[0] ?? "dinner";
+  const [cookOpen, setCookOpen] = useState(false);
   const split =
     recipe && people.length ? splitDish(recipe, people, portionsFor(people, slot, recipe)) : null;
 
@@ -135,10 +140,15 @@ function RecipePage() {
               ))}
             </ul>
 
+            <MealCost recipe={recipe} batches={split?.batches ?? 1} className="mt-3" />
+
             <h2 className="mt-6 mb-2 font-display text-[15px] font-semibold tracking-wide text-muted-foreground uppercase">
               How to cook it
             </h2>
-            <ol className="grid gap-2.5">
+            <Button className="w-full rounded-full" onClick={() => setCookOpen(true)}>
+              <ChefHat className="size-4" /> Cook it with me — one step at a time
+            </Button>
+            <ol className="mt-2.5 grid gap-2.5">
               {recipe.steps.map((step, i) => (
                 <li key={step} className="flex gap-3 rounded-2xl bg-card p-3.5 shadow-soft">
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-caramel text-[12px] font-semibold text-caramel-foreground">
@@ -148,6 +158,14 @@ function RecipePage() {
                 </li>
               ))}
             </ol>
+
+            <CookingMode
+              open={cookOpen}
+              onOpenChange={setCookOpen}
+              recipe={recipe}
+              people={people.map((p) => ({ id: p.id, display_name: p.display_name }))}
+              portions={portionsFor(people, slot, recipe)}
+            />
           </>
         )}
       </div>

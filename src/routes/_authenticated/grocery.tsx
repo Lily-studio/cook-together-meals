@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app-shell";
@@ -111,9 +111,13 @@ function GroceryPage() {
   const rebuild = async () => {
     setBusy(true);
     try {
-      await clear.mutateAsync();
       const built = buildGroceryList(entriesForWeek(weekIndex));
-      if (built.length) await add.mutateAsync(built);
+      if (!built.length) {
+        toast.error("There's nothing planned for this week yet.");
+        return;
+      }
+      await clear.mutateAsync();
+      await add.mutateAsync(built);
       toast.success("Your list is ready");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Couldn't build the list");
@@ -121,6 +125,18 @@ function GroceryPage() {
       setBusy(false);
     }
   };
+
+  // Older lists were saved with "400 g × 2" style amounts. Quietly rebuild them
+  // once the plan has loaded, so the shop always shows one honest total.
+  const healed = useRef<Record<number, boolean>>({});
+  useEffect(() => {
+    if (busy || healed.current[weekIndex] || !allEntries.length) return;
+    const legacy = list.some((i) => !i.manual && i.amount.includes("×"));
+    if (!legacy) return;
+    healed.current[weekIndex] = true;
+    void rebuild();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list, busy, weekIndex, allEntries.length]);
 
   const done = list.filter((i) => i.checked).length;
   const monthLabel = weeks[0]![0]!.toLocaleDateString("en-GB", { month: "long" });

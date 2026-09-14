@@ -67,6 +67,63 @@ function LilyHub() {
   const logs = useLogs(householdId, week.from, week.to);
   const days = new Set((logs.data ?? []).map((l) => l.log_date)).size;
 
+  // The month, seen kindly: what got cooked, what got used up, what that saved.
+  const month = useMemo(() => {
+    const first = startOfWeek(new Date());
+    const last = new Date(first);
+    last.setDate(last.getDate() + 27);
+    return { from: isoDate(first), to: isoDate(last), weekStart: isoDate(first) };
+  }, []);
+  const monthPlan = usePlan(householdId, month.from, month.to);
+  const monthLogs = useLogs(householdId, month.from, month.to);
+  const prep = usePrepBatches(householdId);
+  const grocery = useGrocery(householdId, thisWeekStart());
+  const pantry = usePantry(householdId);
+  const { data: recipes = [] } = useRecipes();
+  const favorites = useFavorites(householdId);
+  const setEntry = useSetPlanEntry();
+
+  const summary = useMemo(
+    () =>
+      monthSummary({
+        entries: monthPlan.data ?? [],
+        logs: monthLogs.data ?? [],
+        prep: prep.data ?? [],
+        grocery: grocery.data ?? [],
+        pantry: pantry.data ?? [],
+      }),
+    [monthPlan.data, monthLogs.data, prep.data, grocery.data, pantry.data],
+  );
+
+  const surprise = useMemo(
+    () =>
+      recipes.length
+        ? weeklySurprise({
+            recipes,
+            favouriteRecipeIds: (favorites.data ?? []).map((f) => f.recipe_id),
+            weekStart: month.weekStart,
+            entries: monthPlan.data ?? [],
+          })
+        : null,
+    [recipes, favorites.data, month.weekStart, monthPlan.data],
+  );
+
+  const cookSurprise = () => {
+    if (!surprise || !householdId) return;
+    const when = new Date();
+    when.setDate(when.getDate() + 1);
+    setEntry.mutate(
+      {
+        household_id: householdId,
+        plan_date: isoDate(when),
+        slot: "dinner",
+        recipe_id: surprise.id,
+        portions: portionsFor(people, "dinner", surprise),
+      },
+      { onSuccess: () => toast.success(`${surprise.title} tomorrow night — a little treat 🌼`) },
+    );
+  };
+
   return (
     <AppShell title="Lily's kitchen" subtitle="One kitchen. One meal. Two goals." mood="heart">
       <LilySays mood={days >= 3 ? "heart" : "wink"}>
@@ -74,6 +131,50 @@ function LilyHub() {
           ? `You've told me about ${days} of the last 7 days — that's how we keep this honest and kind.`
           : "Tell me what you eat when you can. No scolding, just better plans."}
       </LilySays>
+
+      {surprise ? (
+        <Card className="mt-3 bg-butter/40">
+          <p className="font-display text-[16px] font-semibold">Lily's surprise this week ✨</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            {surprise.emoji} {surprise.title} — {surprise.tagline.toLowerCase()}. It's your kind of thing, and
+            it isn't in the plan yet.
+          </p>
+          <Button size="sm" className="mt-2 rounded-full" onClick={cookSurprise}>
+            Put it on tomorrow's dinner
+          </Button>
+        </Card>
+      ) : null}
+
+      <SectionTitle>Your month with me</SectionTitle>
+      <Card>
+        <div className="grid grid-cols-2 gap-3">
+          {(
+            [
+              [`${summary.mealsCooked}`, "meals cooked at home"],
+              [`${summary.prepPortionsUsed}`, "prepped portions eaten"],
+              [`${Math.round(summary.wasteAvoidedGrams / 10) * 10} g`, "food saved as leftovers"],
+              [`${summary.savedByLeftovers + summary.savedBySwaps} MAD`, "saved, roughly"],
+            ] as const
+          ).map(([value, label]) => (
+            <div key={label} className="rounded-2xl bg-secondary/40 p-3">
+              <p className="font-display text-xl font-semibold">{value}</p>
+              <p className="text-[11px] text-muted-foreground">{label}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[12px] text-muted-foreground">
+          No weighing, no guilt — just a kitchen that's working. 🌼
+        </p>
+      </Card>
+
+      <SectionTitle>Show me your kitchen</SectionTitle>
+      <ShowLily
+        context={`Household stock: ${(pantry.data ?? [])
+          .slice(0, 20)
+          .map((p) => p.name)
+          .join(", ")}`}
+      />
+
 
       <SectionTitle>Progress</SectionTitle>
       <div className="grid gap-3">
