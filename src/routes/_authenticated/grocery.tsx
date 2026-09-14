@@ -122,6 +122,18 @@ function GroceryPage() {
     }
   };
 
+  // Older lists were saved with "400 g × 2" style amounts. Quietly rebuild them
+  // once so the shop always shows one honest total.
+  const healed = useRef<Record<number, boolean>>({});
+  useEffect(() => {
+    if (busy || healed.current[weekIndex]) return;
+    const legacy = list.some((i) => !i.manual && i.amount.includes("×"));
+    if (!legacy) return;
+    healed.current[weekIndex] = true;
+    void rebuild();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [list, busy, weekIndex]);
+
   const done = list.filter((i) => i.checked).length;
   const monthLabel = weeks[0]![0]!.toLocaleDateString("en-GB", { month: "long" });
 
