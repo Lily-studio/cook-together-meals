@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Clock, Users } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, ChefHat, Clock, Users } from "lucide-react";
 import { LilyBeside, LilySays } from "@/components/lily";
 import { useApp } from "@/components/app-context";
+import { CookingMode } from "@/components/cooking-mode";
+import { MealCost } from "@/components/meal-cost";
+import { Button } from "@/components/ui/button";
 import { useRecipe } from "@/lib/db";
 import { portionsFor } from "@/lib/planner";
 import { formatGrams, splitDish } from "@/lib/dish";
