@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app-shell";
