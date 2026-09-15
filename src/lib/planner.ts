@@ -232,7 +232,13 @@ function shoppingKey(name: string) {
   let key = name.trim().toLowerCase().split(",")[0]!.trim();
   key = key.replace(/\b(fresh|chopped|sliced|grated|ripe|large|small|tinned|ground)\b/g, "").trim();
   key = key.replace(/\s+/g, " ");
-  const words = key.split(" ").map((w) => (w.length > 3 && w.endsWith("es") ? w.slice(0, -2) : w.length > 3 && w.endsWith("s") ? w.slice(0, -1) : w));
+  const singular = (w: string) => {
+    if (w.length < 4 || !w.endsWith("s")) return w;
+    // tomatoes → tomato, dishes → dish; oranges → orange, carrots → carrot
+    if (/(o|s|x|ch|sh)es$/.test(w)) return w.slice(0, -2);
+    return w.slice(0, -1);
+  };
+  const words = key.split(" ").map(singular);
   return words.join(" ") || name.trim().toLowerCase();
 }
 
