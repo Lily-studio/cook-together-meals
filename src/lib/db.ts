@@ -49,6 +49,13 @@ export type Profile = {
   allergies: string[];
   disliked: string[];
   ingredient_rules: Record<string, string>;
+  /** "regular" | "monsieur_cuisine" | "thermomix" | "custom" */
+  cooking_method: string;
+  cooking_method_note: string;
+  /** Foods Lily should lean on more often, remembered from conversations. */
+  prefer_more: string[];
+  /** Lasting instructions Lily has been told to remember. */
+  lily_notes: string[];
   onboarding_complete: boolean;
 };
 
