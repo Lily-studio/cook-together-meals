@@ -7,6 +7,7 @@
  */
 
 import type { Profile, Recipe } from "./db";
+import { methodOf, methodScore } from "./cooking-method";
 import { lunchRuleRelaxed } from "./lily-brain";
 import { SLOTS, isoDate } from "./nutrition";
 import { candidatesFor, portionsFor, restrictionsFor } from "./planner";
@@ -71,11 +72,26 @@ export function generateMonth({
   // Pool per slot, with favourites nudged to the front and protein-rich
   // dishes preferred for the main meals.
   const pools: Record<string, Recipe[]> = {};
+  const method = methodOf(people[0]);
+  const prefer = people
+    .flatMap((p) => p.prefer_more ?? [])
+    .map((w) => w.trim().toLowerCase())
+    .filter((w) => w.length > 2);
+  const preferred = (r: Recipe) => {
+    if (!prefer.length) return false;
+    const hay = [r.title, ...r.ingredients.map((i) => i.name)].join(" ").toLowerCase();
+    return prefer.some((w) => hay.includes(w));
+  };
+
   SLOTS.forEach((slot, slotIndex) => {
     const base = candidatesFor(usable, slot, restrictions, { relaxLunchRule }).filter(isPlannable);
     const scored = [...base].sort((a, b) => {
       const fav = Number(favouriteRecipeIds.includes(b.id)) - Number(favouriteRecipeIds.includes(a.id));
       if (fav) return fav;
+      const wanted = Number(preferred(b)) - Number(preferred(a));
+      if (wanted) return wanted;
+      const machine = methodScore(a, method) - methodScore(b, method);
+      if (machine) return machine;
       if (slot === "lunch" || slot === "dinner") return b.protein - a.protein;
       return 0;
     });

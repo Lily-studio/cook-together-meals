@@ -387,6 +387,8 @@ export type Database = {
           allergies: string[]
           calorie_target: number
           carb_target: number
+          cooking_method: string
+          cooking_method_note: string
           created_at: string
           diet_prefs: string[]
           disliked: string[]
@@ -399,7 +401,9 @@ export type Database = {
           id: string
           ingredient_rules: Json
           is_owner: boolean
+          lily_notes: string[]
           onboarding_complete: boolean
+          prefer_more: string[]
           protein_target: number
           sex: string | null
           updated_at: string
@@ -412,6 +416,8 @@ export type Database = {
           allergies?: string[]
           calorie_target?: number
           carb_target?: number
+          cooking_method?: string
+          cooking_method_note?: string
           created_at?: string
           diet_prefs?: string[]
           disliked?: string[]
@@ -424,7 +430,9 @@ export type Database = {
           id: string
           ingredient_rules?: Json
           is_owner?: boolean
+          lily_notes?: string[]
           onboarding_complete?: boolean
+          prefer_more?: string[]
           protein_target?: number
           sex?: string | null
           updated_at?: string
@@ -437,6 +445,8 @@ export type Database = {
           allergies?: string[]
           calorie_target?: number
           carb_target?: number
+          cooking_method?: string
+          cooking_method_note?: string
           created_at?: string
           diet_prefs?: string[]
           disliked?: string[]
@@ -449,7 +459,9 @@ export type Database = {
           id?: string
           ingredient_rules?: Json
           is_owner?: boolean
+          lily_notes?: string[]
           onboarding_complete?: boolean
+          prefer_more?: string[]
           protein_target?: number
           sex?: string | null
           updated_at?: string
