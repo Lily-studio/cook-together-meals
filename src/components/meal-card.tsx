@@ -23,11 +23,13 @@ import {
   useAddLog,
   useDeletePlanEntry,
   useFavorites,
+  useRecipes,
   useSetPlanEntry,
   useUpdatePlanEntry,
   type FoodLog,
   type PlanEntry,
 } from "@/lib/db";
+import { REPLACE_MODES, pickReplacement, replacementNote, type ReplaceMode } from "@/lib/replace-meal";
 import { SLOT_EMOJI, SLOT_LABELS, scaleMacros } from "@/lib/nutrition";
 import { portionsFor } from "@/lib/planner";
 import { suggestSwaps } from "@/lib/portions";
@@ -58,6 +60,8 @@ export function MealCard({
   const deleteEntry = useDeletePlanEntry();
   const addLog = useAddLog();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [replaceOpen, setReplaceOpen] = useState(false);
+  const allRecipes = useRecipes();
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [swapFor, setSwapFor] = useState<{ name: string; amount: string } | null>(null);
   const [cookOpen, setCookOpen] = useState(false);
