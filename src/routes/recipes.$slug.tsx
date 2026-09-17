@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useRecipe } from "@/lib/db";
 import { portionsFor } from "@/lib/planner";
 import { formatGrams, splitDish } from "@/lib/dish";
+import { methodNote, methodOf } from "@/lib/cooking-method";
 
 export const Route = createFileRoute("/recipes/$slug")({
   head: ({ params }) => ({
@@ -25,7 +26,8 @@ export const Route = createFileRoute("/recipes/$slug")({
 function RecipePage() {
   const { slug } = Route.useParams();
   const { data: recipe, isLoading } = useRecipe(slug);
-  const { people } = useApp();
+  const { people, me } = useApp();
+  const machineNote = recipe ? methodNote(recipe, methodOf(me), me?.cooking_method_note ?? "") : null;
   const slot = recipe?.meal_types?.[0] ?? "dinner";
   const [cookOpen, setCookOpen] = useState(false);
   const split =
@@ -148,6 +150,11 @@ function RecipePage() {
             <Button className="w-full rounded-full" onClick={() => setCookOpen(true)}>
               <ChefHat className="size-4" /> Cook it with me — one step at a time
             </Button>
+            {machineNote ? (
+              <p className="mt-2.5 rounded-2xl bg-butter/40 px-3.5 py-3 text-[12.5px] leading-relaxed">
+                {machineNote}
+              </p>
+            ) : null}
             <ol className="mt-2.5 grid gap-2.5">
               {recipe.steps.map((step, i) => (
                 <li key={step} className="flex gap-3 rounded-2xl bg-card p-3.5 shadow-soft">

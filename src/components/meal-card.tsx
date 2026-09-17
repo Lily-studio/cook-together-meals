@@ -23,11 +23,13 @@ import {
   useAddLog,
   useDeletePlanEntry,
   useFavorites,
+  useRecipes,
   useSetPlanEntry,
   useUpdatePlanEntry,
   type FoodLog,
   type PlanEntry,
 } from "@/lib/db";
+import { REPLACE_MODES, pickReplacement, replacementNote, type ReplaceMode } from "@/lib/replace-meal";
 import { SLOT_EMOJI, SLOT_LABELS, scaleMacros } from "@/lib/nutrition";
 import { portionsFor } from "@/lib/planner";
 import { suggestSwaps } from "@/lib/portions";
@@ -58,6 +60,8 @@ export function MealCard({
   const deleteEntry = useDeletePlanEntry();
   const addLog = useAddLog();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [replaceOpen, setReplaceOpen] = useState(false);
+  const allRecipes = useRecipes();
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [swapFor, setSwapFor] = useState<{ name: string; amount: string } | null>(null);
   const [cookOpen, setCookOpen] = useState(false);
@@ -78,6 +82,35 @@ export function MealCard({
       [profileId]: Math.max(0, Math.round(((portions[profileId] ?? 1) + delta) * 20) / 20),
     };
     updateEntry.mutate({ id: entry.id, values: { portions: next } });
+  };
+
+  /** One tap, one meal swapped — the rest of the day never moves. */
+  const swapMeal = (mode: ReplaceMode) => {
+    if (!householdId) return;
+    const next = pickReplacement({
+      recipes: allRecipes.data ?? [],
+      people,
+      slot,
+      current: recipe,
+      mode,
+      pantry: stock.data ?? [],
+      seed: new Date().getSeconds(),
+    });
+    setReplaceOpen(false);
+    if (!next) {
+      toast.error("I couldn't find another one that fits your rules.");
+      return;
+    }
+    setEntry.mutate(
+      {
+        household_id: householdId,
+        plan_date: date,
+        slot,
+        recipe_id: next.id,
+        portions: portionsFor(people, slot, next),
+      },
+      { onSuccess: () => toast.success(`${next.title} — ${replacementNote(mode, recipe, next)}`) },
+    );
   };
 
   const markEaten = (profileId: string) => {
@@ -174,7 +207,7 @@ export function MealCard({
         </div>
         <div className="flex shrink-0 flex-col gap-1.5">
           <button
-            onClick={() => setPickerOpen(true)}
+            onClick={() => (recipe ? setReplaceOpen(true) : setPickerOpen(true))}
             aria-label={recipe ? "Replace this meal" : "Choose a meal"}
             className="flex size-8 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-caramel/15 hover:text-caramel"
           >
@@ -355,6 +388,44 @@ export function MealCard({
           swaps={swaps}
         />
       ) : null}
+
+      <Dialog open={replaceOpen} onOpenChange={setReplaceOpen}>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              Another {(SLOT_LABELS[slot] ?? slot).toLowerCase()}?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-2">
+            {REPLACE_MODES.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => swapMeal(m.value)}
+                className="flex items-center gap-2.5 rounded-2xl bg-secondary/60 px-3 py-2.5 text-left text-[13.5px] font-medium transition-colors hover:bg-secondary"
+              >
+                <span>{m.emoji}</span>
+                {m.label}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                setReplaceOpen(false);
+                setPickerOpen(true);
+              }}
+              className="rounded-2xl px-3 py-2.5 text-left text-[13px] text-muted-foreground hover:underline"
+            >
+              Let me pick myself →
+            </button>
+            <Link
+              to="/talk"
+              onClick={() => setReplaceOpen(false)}
+              className="rounded-2xl px-3 py-2.5 text-left text-[13px] text-muted-foreground hover:underline"
+            >
+              💬 Ask Lily instead →
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <RecipePicker
         open={pickerOpen}
