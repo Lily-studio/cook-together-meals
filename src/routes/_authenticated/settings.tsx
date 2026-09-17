@@ -339,6 +339,13 @@ function SettingsPage() {
       <SectionTitle>My kitchen</SectionTitle>
       <KitchenEquipment />
 
+      <SectionTitle>What Lily remembers</SectionTitle>
+      <div className="grid gap-3">
+        {people.map((p) => (
+          <LilyMemory key={p.id} person={p} />
+        ))}
+      </div>
+
 
       <SectionTitle>The two of you</SectionTitle>
       <div className="grid gap-3">
