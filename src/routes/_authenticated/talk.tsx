@@ -48,9 +48,9 @@ const SUGGESTIONS = [
 type Bubble = {
   role: "user" | "assistant";
   content: string;
-  done?: string[];
-  link?: { to: string; label: string } | null;
-  pending?: LilyAction[];
+  done?: string[] | undefined;
+  link?: { to: string; label: string } | null | undefined;
+  pending?: LilyAction[] | undefined;
 };
 
 function TalkToLily() {
