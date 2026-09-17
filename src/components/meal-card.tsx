@@ -389,6 +389,44 @@ export function MealCard({
         />
       ) : null}
 
+      <Dialog open={replaceOpen} onOpenChange={setReplaceOpen}>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              Another {(SLOT_LABELS[slot] ?? slot).toLowerCase()}?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-2">
+            {REPLACE_MODES.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => swapMeal(m.value)}
+                className="flex items-center gap-2.5 rounded-2xl bg-secondary/60 px-3 py-2.5 text-left text-[13.5px] font-medium transition-colors hover:bg-secondary"
+              >
+                <span>{m.emoji}</span>
+                {m.label}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                setReplaceOpen(false);
+                setPickerOpen(true);
+              }}
+              className="rounded-2xl px-3 py-2.5 text-left text-[13px] text-muted-foreground hover:underline"
+            >
+              Let me pick myself →
+            </button>
+            <Link
+              to="/talk"
+              onClick={() => setReplaceOpen(false)}
+              className="rounded-2xl px-3 py-2.5 text-left text-[13px] text-muted-foreground hover:underline"
+            >
+              💬 Ask Lily instead →
+            </Link>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <RecipePicker
         open={pickerOpen}
         onOpenChange={setPickerOpen}
