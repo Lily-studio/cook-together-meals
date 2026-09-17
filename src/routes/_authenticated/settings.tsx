@@ -325,6 +325,58 @@ function KitchenEquipment() {
   );
 }
 
+function LilyMemory({ person }: { person: Profile }) {
+  const update = useUpdateProfile();
+  const notes = person.lily_notes ?? [];
+  const prefer = person.prefer_more ?? [];
+  const dislikes = person.disliked ?? [];
+
+  const drop = (field: "lily_notes" | "prefer_more" | "disliked", value: string) =>
+    update.mutate({
+      id: person.id,
+      values: { [field]: (person[field] ?? []).filter((v) => v !== value) } as Partial<Profile>,
+    });
+
+  const rows: { label: string; field: "lily_notes" | "prefer_more" | "disliked"; items: string[] }[] = [
+    { label: "Never plan", field: "disliked", items: dislikes },
+    { label: "Use more", field: "prefer_more", items: prefer },
+    { label: "Remembered", field: "lily_notes", items: notes },
+  ];
+
+  return (
+    <Card className="grid gap-3">
+      <p className="font-display text-[15px] font-semibold">{person.display_name}</p>
+      {rows.every((r) => !r.items.length) ? (
+        <p className="text-[12.5px] text-muted-foreground">
+          Nothing yet — tell Lily "from now on, no carrot sticks" and it'll appear here.
+        </p>
+      ) : null}
+      {rows
+        .filter((r) => r.items.length)
+        .map((r) => (
+          <div key={r.field}>
+            <p className="mb-1 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+              {r.label}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {r.items.map((item) => (
+                <span
+                  key={item}
+                  className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-[12.5px]"
+                >
+                  {item}
+                  <button onClick={() => drop(r.field, item)} aria-label={`Forget ${item}`}>
+                    <X className="size-3.5 text-muted-foreground" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+    </Card>
+  );
+}
+
 function SettingsPage() {
   const { people } = useApp();
   const navigate = useNavigate();
