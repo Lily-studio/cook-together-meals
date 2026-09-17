@@ -274,6 +274,56 @@ function PersonEditor({ person }: { person: Profile }) {
   );
 }
 
+function KitchenEquipment() {
+  const { people, me } = useApp();
+  const update = useUpdateProfile();
+  const current = me?.cooking_method ?? "regular";
+  const [note, setNote] = useState(me?.cooking_method_note ?? "");
+
+  const choose = (value: string, customNote = "") => {
+    people.forEach((p) =>
+      update.mutate({ id: p.id, values: { cooking_method: value, cooking_method_note: customNote } }),
+    );
+    toast.success(`Cooking with your ${methodLabel(value, customNote)} from now on`);
+  };
+
+  return (
+    <Card className="grid gap-2">
+      <p className="text-[12.5px] text-muted-foreground">
+        Lily writes the steps for whatever you cook with — and picks dishes that suit it.
+      </p>
+      {COOKING_METHODS.map((m) => (
+        <button
+          key={m.value}
+          onClick={() => choose(m.value, m.value === "custom" ? note : "")}
+          className={cn(
+            "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors",
+            current === m.value ? "bg-caramel/15 ring-1 ring-caramel/40" : "bg-secondary/60 hover:bg-secondary",
+          )}
+        >
+          <span className="text-lg">{m.emoji}</span>
+          <span className="min-w-0">
+            <span className="block text-[13.5px] font-semibold">{m.label}</span>
+            <span className="block truncate text-[12px] text-muted-foreground">{m.hint}</span>
+          </span>
+        </button>
+      ))}
+      {current === "custom" ? (
+        <div className="flex gap-2">
+          <Input
+            value={note}
+            placeholder="Air fryer, slow cooker…"
+            onChange={(e) => setNote(e.target.value)}
+          />
+          <Button variant="secondary" className="rounded-full" onClick={() => choose("custom", note)}>
+            Save
+          </Button>
+        </div>
+      ) : null}
+    </Card>
+  );
+}
+
 function SettingsPage() {
   const { people } = useApp();
   const navigate = useNavigate();
@@ -284,6 +334,10 @@ function SettingsPage() {
         Change your weight or how active you are whenever it shifts — I'll keep your plan sensible, never
         crash-diet strict.
       </LilySays>
+
+      <SectionTitle>My kitchen</SectionTitle>
+      <KitchenEquipment />
+
 
       <SectionTitle>The two of you</SectionTitle>
       <div className="grid gap-3">
