@@ -148,6 +148,11 @@ function RecipePage() {
             <Button className="w-full rounded-full" onClick={() => setCookOpen(true)}>
               <ChefHat className="size-4" /> Cook it with me — one step at a time
             </Button>
+            {machineNote ? (
+              <p className="mt-2.5 rounded-2xl bg-butter/40 px-3.5 py-3 text-[12.5px] leading-relaxed">
+                {machineNote}
+              </p>
+            ) : null}
             <ol className="mt-2.5 grid gap-2.5">
               {recipe.steps.map((step, i) => (
                 <li key={step} className="flex gap-3 rounded-2xl bg-card p-3.5 shadow-soft">
