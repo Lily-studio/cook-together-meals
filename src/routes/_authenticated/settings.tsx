@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/macro";
 import { supabase } from "@/integrations/supabase/client";
 import { useUpdateProfile, type Profile } from "@/lib/db";
+import { COOKING_METHODS, methodLabel } from "@/lib/cooking-method";
 import { ACTIVITY_LABELS, GOAL_LABELS, computeTargets, type Goal } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
