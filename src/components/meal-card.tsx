@@ -84,6 +84,35 @@ export function MealCard({
     updateEntry.mutate({ id: entry.id, values: { portions: next } });
   };
 
+  /** One tap, one meal swapped — the rest of the day never moves. */
+  const swapMeal = (mode: ReplaceMode) => {
+    if (!householdId) return;
+    const next = pickReplacement({
+      recipes: allRecipes.data ?? [],
+      people,
+      slot,
+      current: recipe,
+      mode,
+      pantry: stock.data ?? [],
+      seed: new Date().getSeconds(),
+    });
+    setReplaceOpen(false);
+    if (!next) {
+      toast.error("I couldn't find another one that fits your rules.");
+      return;
+    }
+    setEntry.mutate(
+      {
+        household_id: householdId,
+        plan_date: date,
+        slot,
+        recipe_id: next.id,
+        portions: portionsFor(people, slot, next),
+      },
+      { onSuccess: () => toast.success(`${next.title} — ${replacementNote(mode, recipe, next)}`) },
+    );
+  };
+
   const markEaten = (profileId: string) => {
     if (!recipe || !householdId) return;
     const macros = scaleMacros(recipe, portions[profileId] ?? 1);
@@ -178,7 +207,7 @@ export function MealCard({
         </div>
         <div className="flex shrink-0 flex-col gap-1.5">
           <button
-            onClick={() => setPickerOpen(true)}
+            onClick={() => (recipe ? setReplaceOpen(true) : setPickerOpen(true))}
             aria-label={recipe ? "Replace this meal" : "Choose a meal"}
             className="flex size-8 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-caramel/15 hover:text-caramel"
           >
