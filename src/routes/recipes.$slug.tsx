@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useRecipe } from "@/lib/db";
 import { portionsFor } from "@/lib/planner";
 import { formatGrams, splitDish } from "@/lib/dish";
+import { methodNote, methodOf } from "@/lib/cooking-method";
 
 export const Route = createFileRoute("/recipes/$slug")({
   head: ({ params }) => ({
@@ -25,7 +26,8 @@ export const Route = createFileRoute("/recipes/$slug")({
 function RecipePage() {
   const { slug } = Route.useParams();
   const { data: recipe, isLoading } = useRecipe(slug);
-  const { people } = useApp();
+  const { people, me } = useApp();
+  const machineNote = recipe ? methodNote(recipe, methodOf(me), me?.cooking_method_note ?? "") : null;
   const slot = recipe?.meal_types?.[0] ?? "dinner";
   const [cookOpen, setCookOpen] = useState(false);
   const split =
