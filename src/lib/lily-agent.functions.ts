@@ -95,7 +95,8 @@ export const lilyCommand = createServerFn({ method: "POST" })
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-3.7-flash",
+          model: "openai/gpt-6-astra",
+          reasoning_effort: "low",
           messages: [
             { role: "system", content: `${SYSTEM}\n\nKITCHEN SUMMARY:\n${data.context}` },
             ...data.messages,
