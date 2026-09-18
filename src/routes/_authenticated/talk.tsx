@@ -167,11 +167,8 @@ function TalkToLily() {
         content: needsConfirm ? `${res.reply}\n\n${confirmQuestion(res.actions)}` : res.reply,
         pending: needsConfirm ? res.actions : undefined,
       };
-      let index = 0;
-      setTurns((prev) => {
-        index = prev.length;
-        return [...prev, bubble];
-      });
+      const index = history.length;
+      setTurns([...history, bubble]);
       if (!needsConfirm && res.actions.length) await carryOut(res.actions, index);
     } catch {
       toast.error("Lily couldn't answer just now — try again?");
