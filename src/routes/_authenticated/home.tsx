@@ -171,7 +171,10 @@ function HomeHub() {
               See today <ArrowRight className="size-4" />
             </Link>
           </div>
-          <LilyFull className="max-w-[150px] self-end" mood="welcome" />
+          <div className="w-[128px] shrink-0 self-end sm:w-[160px]">
+            <LilyFull mood="welcome" />
+          </div>
+
         </div>
       </section>
 
