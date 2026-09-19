@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticated/discover'
 import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authenticated/favorites'
 import { Route as AuthenticatedGroceryRouteImport } from './routes/_authenticated/grocery'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedLilyRouteImport } from './routes/_authenticated/lily'
 import { Route as AuthenticatedMonthRouteImport } from './routes/_authenticated/month'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -54,6 +55,11 @@ const AuthenticatedFavoritesRoute = AuthenticatedFavoritesRouteImport.update({
 const AuthenticatedGroceryRoute = AuthenticatedGroceryRouteImport.update({
   id: '/grocery',
   path: '/grocery',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLilyRoute = AuthenticatedLilyRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/discover': typeof AuthenticatedDiscoverRoute
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/grocery': typeof AuthenticatedGroceryRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/lily': typeof AuthenticatedLilyRoute
   '/month': typeof AuthenticatedMonthRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/discover': typeof AuthenticatedDiscoverRoute
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/grocery': typeof AuthenticatedGroceryRoute
+  '/home': typeof AuthenticatedHomeRoute
   '/lily': typeof AuthenticatedLilyRoute
   '/month': typeof AuthenticatedMonthRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/_authenticated/discover': typeof AuthenticatedDiscoverRoute
   '/_authenticated/favorites': typeof AuthenticatedFavoritesRoute
   '/_authenticated/grocery': typeof AuthenticatedGroceryRoute
+  '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/lily': typeof AuthenticatedLilyRoute
   '/_authenticated/month': typeof AuthenticatedMonthRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/favorites'
     | '/grocery'
+    | '/home'
     | '/lily'
     | '/month'
     | '/onboarding'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/favorites'
     | '/grocery'
+    | '/home'
     | '/lily'
     | '/month'
     | '/onboarding'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/_authenticated/discover'
     | '/_authenticated/favorites'
     | '/_authenticated/grocery'
+    | '/_authenticated/home'
     | '/_authenticated/lily'
     | '/_authenticated/month'
     | '/_authenticated/onboarding'
@@ -275,6 +287,13 @@ declare module '@tanstack/react-router' {
       path: '/grocery'
       fullPath: '/grocery'
       preLoaderRoute: typeof AuthenticatedGroceryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/lily': {
@@ -361,6 +380,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDiscoverRoute: typeof AuthenticatedDiscoverRoute
   AuthenticatedFavoritesRoute: typeof AuthenticatedFavoritesRoute
   AuthenticatedGroceryRoute: typeof AuthenticatedGroceryRoute
+  AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedLilyRoute: typeof AuthenticatedLilyRoute
   AuthenticatedMonthRoute: typeof AuthenticatedMonthRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -377,6 +397,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDiscoverRoute: AuthenticatedDiscoverRoute,
   AuthenticatedFavoritesRoute: AuthenticatedFavoritesRoute,
   AuthenticatedGroceryRoute: AuthenticatedGroceryRoute,
+  AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedLilyRoute: AuthenticatedLilyRoute,
   AuthenticatedMonthRoute: AuthenticatedMonthRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
