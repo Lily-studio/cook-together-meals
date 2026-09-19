@@ -186,9 +186,10 @@ function HomeHub() {
         {TILES.map((tile) => (
           <div key={tile.title} className="min-w-0 rounded-3xl bg-card p-4 shadow-soft">
             <div className="flex items-start gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-butter/60 text-lg">
-                {tile.emoji}
+              <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-butter/60">
+                <tile.icon className="size-5 text-caramel" />
               </span>
+
               <div className="min-w-0">
                 <p className="font-display text-base font-semibold leading-tight">{tile.title}</p>
                 <p className="mt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">{tile.blurb}</p>
