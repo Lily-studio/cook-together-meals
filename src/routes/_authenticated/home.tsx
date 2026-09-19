@@ -140,7 +140,7 @@ function HomeHub() {
               {partOfDay}
             </p>
             <h2 className="mt-1.5 font-display text-[1.75rem] leading-[1.1] font-semibold">
-              Welcome in{me?.name ? `, ${me.name}` : ""}.
+              Welcome in{me?.display_name ? `, ${me.display_name}` : ""}.
               <br />
               <span className="text-caramel">The kitchen's ready.</span>
             </h2>
