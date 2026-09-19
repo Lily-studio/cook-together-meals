@@ -38,7 +38,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { to: "/home", label: "Home", icon: Home },
   { to: "/today", label: "Today", icon: Sparkles, group: "🍽️ Meals" },
-  { to: "/week", label: "My Week", icon: CalendarDays, group: "🍽️ Meals" },
+  { to: "/week", label: "My Week", icon: CalendarDays, desktopOnly: true, group: "🍽️ Meals" },
   { to: "/month", label: "My Month", icon: CalendarRange, desktopOnly: true, group: "🍽️ Meals" },
   { to: "/grocery", label: "Groceries", icon: ShoppingBasket, group: "🛒 Groceries" },
   { to: "/pantry", label: "My Stock", icon: Package, desktopOnly: true, group: "🏠 My kitchen" },
