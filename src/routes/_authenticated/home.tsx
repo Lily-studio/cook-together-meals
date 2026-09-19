@@ -42,13 +42,28 @@ export const Route = createFileRoute("/_authenticated/home")({
   component: HomeHub,
 });
 
+type HubPath =
+  | "/today"
+  | "/week"
+  | "/month"
+  | "/grocery"
+  | "/pantry"
+  | "/prep"
+  | "/discover"
+  | "/favorites"
+  | "/tell-lily"
+  | "/lily"
+  | "/talk"
+  | "/settings";
+
 type Tile = {
   emoji: string;
   title: string;
   blurb: string;
   icon: typeof CalendarDays;
-  links: { to: string; label: string; icon: typeof CalendarDays }[];
+  links: { to: HubPath; label: string; icon: typeof CalendarDays }[];
 };
+
 
 const TILES: Tile[] = [
   {
