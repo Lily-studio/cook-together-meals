@@ -16,24 +16,38 @@ import { useApp } from "@/components/app-context";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
-  to: "/today" | "/week" | "/month" | "/grocery" | "/favorites" | "/lily" | "/pantry" | "/prep" | "/talk";
+  to:
+    | "/home"
+    | "/today"
+    | "/week"
+    | "/month"
+    | "/grocery"
+    | "/favorites"
+    | "/lily"
+    | "/pantry"
+    | "/prep"
+    | "/talk";
   label: string;
   icon?: typeof Home;
   lily?: boolean;
   desktopOnly?: boolean;
+  /** Which category this belongs to in the laptop sidebar. */
+  group?: string;
 };
 
 const NAV: NavItem[] = [
-  { to: "/today", label: "Home", icon: Home },
-  { to: "/week", label: "My Week", icon: CalendarDays },
-  { to: "/month", label: "My Month", icon: CalendarRange, desktopOnly: true },
-  { to: "/grocery", label: "Groceries", icon: ShoppingBasket },
-  { to: "/favorites", label: "Favourites", icon: Heart },
-  { to: "/lily", label: "Lily", lily: true },
-  { to: "/talk", label: "Talk to Lily", icon: MessagesSquare, desktopOnly: true },
-  { to: "/pantry", label: "My Pantry", icon: Package, desktopOnly: true },
-  { to: "/prep", label: "Prep ahead", icon: Sparkles, desktopOnly: true },
+  { to: "/home", label: "Home", icon: Home },
+  { to: "/today", label: "Today", icon: Sparkles, group: "🍽️ Meals" },
+  { to: "/week", label: "My Week", icon: CalendarDays, group: "🍽️ Meals" },
+  { to: "/month", label: "My Month", icon: CalendarRange, desktopOnly: true, group: "🍽️ Meals" },
+  { to: "/grocery", label: "Groceries", icon: ShoppingBasket, group: "🛒 Groceries" },
+  { to: "/pantry", label: "My Stock", icon: Package, desktopOnly: true, group: "🏠 My kitchen" },
+  { to: "/prep", label: "Prep ahead", icon: Sparkles, desktopOnly: true, group: "🏠 My kitchen" },
+  { to: "/favorites", label: "Favourites", icon: Heart, group: "❤️ Favourites" },
+  { to: "/lily", label: "Lily", lily: true, group: "💬 Lily" },
+  { to: "/talk", label: "Talk to Lily", icon: MessagesSquare, desktopOnly: true, group: "💬 Lily" },
 ];
+
 
 export function AppShell({
   title,
