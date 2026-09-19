@@ -29,7 +29,7 @@ function Landing() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && session) navigate({ to: "/today" });
+    if (!loading && session) navigate({ to: "/home" });
   }, [loading, session, navigate]);
 
   return (

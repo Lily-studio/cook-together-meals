@@ -16,24 +16,38 @@ import { useApp } from "@/components/app-context";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
-  to: "/today" | "/week" | "/month" | "/grocery" | "/favorites" | "/lily" | "/pantry" | "/prep" | "/talk";
+  to:
+    | "/home"
+    | "/today"
+    | "/week"
+    | "/month"
+    | "/grocery"
+    | "/favorites"
+    | "/lily"
+    | "/pantry"
+    | "/prep"
+    | "/talk";
   label: string;
   icon?: typeof Home;
   lily?: boolean;
   desktopOnly?: boolean;
+  /** Which category this belongs to in the laptop sidebar. */
+  group?: string;
 };
 
 const NAV: NavItem[] = [
-  { to: "/today", label: "Home", icon: Home },
-  { to: "/week", label: "My Week", icon: CalendarDays },
-  { to: "/month", label: "My Month", icon: CalendarRange, desktopOnly: true },
-  { to: "/grocery", label: "Groceries", icon: ShoppingBasket },
-  { to: "/favorites", label: "Favourites", icon: Heart },
-  { to: "/lily", label: "Lily", lily: true },
-  { to: "/talk", label: "Talk to Lily", icon: MessagesSquare, desktopOnly: true },
-  { to: "/pantry", label: "My Pantry", icon: Package, desktopOnly: true },
-  { to: "/prep", label: "Prep ahead", icon: Sparkles, desktopOnly: true },
+  { to: "/home", label: "Home", icon: Home },
+  { to: "/today", label: "Today", icon: Sparkles, group: "🍽️ Meals" },
+  { to: "/week", label: "My Week", icon: CalendarDays, desktopOnly: true, group: "🍽️ Meals" },
+  { to: "/month", label: "My Month", icon: CalendarRange, desktopOnly: true, group: "🍽️ Meals" },
+  { to: "/grocery", label: "Groceries", icon: ShoppingBasket, group: "🛒 Groceries" },
+  { to: "/pantry", label: "My Stock", icon: Package, desktopOnly: true, group: "🏠 My kitchen" },
+  { to: "/prep", label: "Prep ahead", icon: Sparkles, desktopOnly: true, group: "🏠 My kitchen" },
+  { to: "/favorites", label: "Favourites", icon: Heart, group: "❤️ Favourites" },
+  { to: "/lily", label: "Lily", lily: true, group: "💬 Lily" },
+  { to: "/talk", label: "Talk to Lily", icon: MessagesSquare, desktopOnly: true, group: "💬 Lily" },
 ];
+
 
 export function AppShell({
   title,
@@ -75,29 +89,37 @@ export function AppShell({
           </div>
         </div>
         <nav className="mt-7 grid gap-1">
-          {NAV.map((item) => {
+          {NAV.map((item, i) => {
             const active = pathname === item.to;
+            const newGroup = item.group && item.group !== NAV[i - 1]?.group;
             return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-colors",
-                  active
-                    ? "bg-butter/70 text-caramel"
-                    : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground",
-                )}
-              >
-                {item.lily ? (
-                  <LilyAvatar size={22} mood="wink" interactive={false} />
-                ) : item.icon ? (
-                  <item.icon className="size-4.5" />
+              <div key={item.to} className="grid">
+                {newGroup ? (
+                  <p className="mt-3 mb-1 px-3 text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+                    {item.group}
+                  </p>
                 ) : null}
-                {item.label}
-              </Link>
+                <Link
+                  to={item.to}
+                  className={cn(
+                    "flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition-colors",
+                    active
+                      ? "bg-butter/70 text-caramel"
+                      : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground",
+                  )}
+                >
+                  {item.lily ? (
+                    <LilyAvatar size={22} mood="wink" interactive={false} />
+                  ) : item.icon ? (
+                    <item.icon className="size-4.5" />
+                  ) : null}
+                  {item.label}
+                </Link>
+              </div>
             );
           })}
         </nav>
+
         <p className="mt-auto px-3 text-[11px] leading-relaxed text-muted-foreground">
           One kitchen. One meal. Two goals.
         </p>
