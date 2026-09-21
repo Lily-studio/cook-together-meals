@@ -67,6 +67,13 @@ function Discover() {
           </Chip>
         ))}
       </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {TAG_FILTERS.map((t) => (
+          <Chip key={t.key} active={tag === t.key} onClick={() => setTag(tag === t.key ? null : t.key)}>
+            {t.label}
+          </Chip>
+        ))}
+      </div>
 
       <div className="mt-4 grid gap-3">
         {list.map((rec) => {
