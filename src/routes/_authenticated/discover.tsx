@@ -15,6 +15,15 @@ export const Route = createFileRoute("/_authenticated/discover")({
 });
 
 const FILTERS = ["all", "breakfast", "lunch", "dinner", "snack"];
+/** Tag shortcuts: the fun corners of the library. */
+const TAG_FILTERS: { key: string; label: string }[] = [
+  { key: "air fryer", label: "🔥 Air fryer" },
+  { key: "coffee", label: "☕ Coffee" },
+  { key: "burger", label: "🍔 Burgers" },
+  { key: "dessert", label: "🍰 Sweet" },
+  { key: "high protein", label: "💪 High protein" },
+  { key: "quick", label: "⏱️ Quick" },
+];
 
 function Discover() {
   const { people, me, householdId } = useApp();
@@ -23,6 +32,7 @@ function Discover() {
   const toggleFavorite = useToggleFavorite();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
+  const [tag, setTag] = useState<string | null>(null);
 
   const list = useMemo(() => {
     const r = restrictionsFor(people);
@@ -30,10 +40,11 @@ function Discover() {
     return recipes
       .filter((rec) => recipeAllowed(rec, r))
       .filter((rec) => (filter === "all" ? true : rec.meal_types.includes(filter)))
+      .filter((rec) => (tag ? rec.tags.some((t) => t.toLowerCase() === tag) : true))
       .filter((rec) =>
         needle ? `${rec.title} ${rec.tagline} ${rec.tags.join(" ")}`.toLowerCase().includes(needle) : true,
       );
-  }, [recipes, people, filter, q]);
+  }, [recipes, people, filter, tag, q]);
 
   const favOf = (recipeId: string) =>
     (favorites.data ?? []).find((f) => f.recipe_id === recipeId && f.profile_id === me?.id);
@@ -53,6 +64,13 @@ function Discover() {
         {FILTERS.map((f) => (
           <Chip key={f} active={filter === f} onClick={() => setFilter(f)}>
             {f === "all" ? "Everything" : f}
+          </Chip>
+        ))}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {TAG_FILTERS.map((t) => (
+          <Chip key={t.key} active={tag === t.key} onClick={() => setTag(tag === t.key ? null : t.key)}>
+            {t.label}
           </Chip>
         ))}
       </div>

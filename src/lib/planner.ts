@@ -72,6 +72,16 @@ export function candidatesFor(
     const withProtein = list.filter(hasLunchProtein);
     if (withProtein.length) list = withProtein;
   }
+  // The first snack of the day is always a proper coffee, never just "coffee".
+  if (slot === "snack_am") {
+    const coffees = list.filter((rec) => rec.tags.some((t) => t.toLowerCase() === "coffee"));
+    if (coffees.length) list = coffees;
+  }
+  // Later snacks are never a coffee cup — they should feel like a little something to eat.
+  if (slot === "snack_pm") {
+    const food = list.filter((rec) => !rec.tags.some((t) => t.toLowerCase() === "coffee"));
+    if (food.length) list = food;
+  }
 
   const demoted = (rec: Recipe) => {
     if (!r.demoteWords.length) return 0;
