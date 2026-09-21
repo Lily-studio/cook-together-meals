@@ -32,6 +32,7 @@ function Discover() {
   const toggleFavorite = useToggleFavorite();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState("all");
+  const [tag, setTag] = useState<string | null>(null);
 
   const list = useMemo(() => {
     const r = restrictionsFor(people);
@@ -39,10 +40,11 @@ function Discover() {
     return recipes
       .filter((rec) => recipeAllowed(rec, r))
       .filter((rec) => (filter === "all" ? true : rec.meal_types.includes(filter)))
+      .filter((rec) => (tag ? rec.tags.some((t) => t.toLowerCase() === tag) : true))
       .filter((rec) =>
         needle ? `${rec.title} ${rec.tagline} ${rec.tags.join(" ")}`.toLowerCase().includes(needle) : true,
       );
-  }, [recipes, people, filter, q]);
+  }, [recipes, people, filter, tag, q]);
 
   const favOf = (recipeId: string) =>
     (favorites.data ?? []).find((f) => f.recipe_id === recipeId && f.profile_id === me?.id);
