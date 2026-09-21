@@ -15,6 +15,15 @@ export const Route = createFileRoute("/_authenticated/discover")({
 });
 
 const FILTERS = ["all", "breakfast", "lunch", "dinner", "snack"];
+/** Tag shortcuts: the fun corners of the library. */
+const TAG_FILTERS: { key: string; label: string }[] = [
+  { key: "air fryer", label: "🔥 Air fryer" },
+  { key: "coffee", label: "☕ Coffee" },
+  { key: "burger", label: "🍔 Burgers" },
+  { key: "dessert", label: "🍰 Sweet" },
+  { key: "high protein", label: "💪 High protein" },
+  { key: "quick", label: "⏱️ Quick" },
+];
 
 function Discover() {
   const { people, me, householdId } = useApp();

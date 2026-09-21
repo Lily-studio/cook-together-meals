@@ -117,7 +117,7 @@ export function generateMonth({
       if (!pool.length) return;
       const gapWanted = pool.length > 5 ? 5 : pool.length > 3 ? 3 : 1;
       const offset = dayIndex * 2 + slotIndex * 3 + seed;
-      const variedSlot = slot === "lunch" || slot === "dinner";
+      const variedSlot = slot === "lunch" || slot === "dinner" || slot === "breakfast";
 
       let pick: Recipe | undefined;
       // First pass: fresh recipe AND a different cuisine/starch from the last days.
