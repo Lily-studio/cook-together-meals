@@ -128,10 +128,18 @@ export function generateMonth({
     return `${recipe.cuisine.toLowerCase()}|${starch ?? "none"}`;
   };
 
+  const isFast = (recipe: Recipe) => recipe.prep_minutes + recipe.cook_minutes <= 25;
+
   dates.forEach((date, dayIndex) => {
     const usedToday = new Set<string>();
+    const iso = isoDate(date);
     SLOTS.forEach((slot, slotIndex) => {
-      const pool = pools[slot] ?? [];
+      const key = `${iso}|${slot}`;
+      // Real life: nobody's eating at home for this one, so Lily leaves it free.
+      if (skipKeys.has(key)) return;
+      const wantFast = quickKeys.has(key);
+      const full = pools[slot] ?? [];
+      const pool = wantFast && full.some(isFast) ? full.filter(isFast) : full;
       if (!pool.length) return;
       const gapWanted = pool.length > 5 ? 5 : pool.length > 3 ? 3 : 1;
       const offset = dayIndex * 2 + slotIndex * 3 + seed;
@@ -159,12 +167,11 @@ export function generateMonth({
       lastUsedOn.set(pick.id, dayIndex);
       lastStyleOn.set(styleOf(pick), dayIndex);
 
-      entries.push({
-        plan_date: isoDate(date),
-        slot,
-        recipe_id: pick.id,
-        portions: portionsFor(people, slot, pick),
-      });
+      const extraPlates = guests[key] ?? guests[`${iso}|all`] ?? 0;
+      const portions = portionsFor(people, slot, pick);
+      if (extraPlates > 0) portions["guests"] = extraPlates;
+
+      entries.push({ plan_date: iso, slot, recipe_id: pick.id, portions });
     });
   });
 
