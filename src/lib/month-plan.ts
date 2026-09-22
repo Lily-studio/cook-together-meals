@@ -54,20 +54,37 @@ export function generateMonth({
   people,
   favouriteRecipeIds = [],
   seed = 0,
+  avoidRecipeIds = [],
+  lovedRecipeIds = [],
+  skip = [],
+  quick = [],
+  guests = {},
 }: {
   start: Date;
   recipes: Recipe[];
   people: Profile[];
   favouriteRecipeIds?: string[];
   seed?: number;
+  /** Rated "never again" — never planned. */
+  avoidRecipeIds?: string[];
+  /** Rated "loved it" — planned more often. */
+  lovedRecipeIds?: string[];
+  /** "2026-09-25|dinner" keys nobody's eating at home for. */
+  skip?: string[];
+  /** Keys that must be as fast as possible (home late). */
+  quick?: string[];
+  /** Extra plates per "date|slot" key, from guests. */
+  guests?: Record<string, number>;
 }): GeneratedEntry[] {
-  const usable = recipes.filter(isPlannable);
+  const usable = recipes.filter(isPlannable).filter((r) => !avoidRecipeIds.includes(r.id));
   if (!usable.length || !people.length) return [];
 
   const restrictions = restrictionsFor(people);
   const relaxLunchRule = lunchRuleRelaxed(people);
   const dates = monthDates(start);
   const entries: GeneratedEntry[] = [];
+  const skipKeys = new Set(skip);
+  const quickKeys = new Set(quick);
 
   // Pool per slot, with favourites nudged to the front and protein-rich
   // dishes preferred for the main meals.
@@ -82,14 +99,15 @@ export function generateMonth({
     const hay = [r.title, ...r.ingredients.map((i) => i.name)].join(" ").toLowerCase();
     return prefer.some((w) => hay.includes(w));
   };
+  const wanted = (r: Recipe) => favouriteRecipeIds.includes(r.id) || lovedRecipeIds.includes(r.id);
 
   SLOTS.forEach((slot, slotIndex) => {
     const base = candidatesFor(usable, slot, restrictions, { relaxLunchRule }).filter(isPlannable);
     const scored = [...base].sort((a, b) => {
-      const fav = Number(favouriteRecipeIds.includes(b.id)) - Number(favouriteRecipeIds.includes(a.id));
+      const fav = Number(wanted(b)) - Number(wanted(a));
       if (fav) return fav;
-      const wanted = Number(preferred(b)) - Number(preferred(a));
-      if (wanted) return wanted;
+      const liked = Number(preferred(b)) - Number(preferred(a));
+      if (liked) return liked;
       const machine = methodScore(a, method) - methodScore(b, method);
       if (machine) return machine;
       if (slot === "lunch" || slot === "dinner") return b.protein - a.protein;
