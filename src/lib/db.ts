@@ -432,6 +432,11 @@ export function usePlanMonth() {
       start,
       seed = 0,
       pantry = [],
+      avoidRecipeIds = [],
+      lovedRecipeIds = [],
+      skip = [],
+      quick = [],
+      guests = {},
     }: {
       householdId: string;
       people: Profile[];
@@ -440,13 +445,34 @@ export function usePlanMonth() {
       start?: Date;
       seed?: number;
       pantry?: { name: string }[];
+      /** Meals rated "never again". */
+      avoidRecipeIds?: string[];
+      /** Meals rated "loved it". */
+      lovedRecipeIds?: string[];
+      /** "date|slot" keys nobody's home for. */
+      skip?: string[];
+      /** "date|slot" keys that must be quick. */
+      quick?: string[];
+      /** Extra plates per "date|slot" key. */
+      guests?: Record<string, number>;
     }) => {
       const { generateMonth, monthDates } = await import("./month-plan");
       const { buildGroceryList } = await import("./planner");
 
       const first = startOfWeek(start ?? new Date());
       const dates = monthDates(first);
-      const generated = generateMonth({ start: first, recipes, people, favouriteRecipeIds, seed });
+      const generated = generateMonth({
+        start: first,
+        recipes,
+        people,
+        favouriteRecipeIds,
+        seed,
+        avoidRecipeIds,
+        lovedRecipeIds,
+        skip,
+        quick,
+        guests,
+      });
       if (!generated.length) throw new Error("Lily needs a few recipes before she can plan");
 
       const from = isoDate(dates[0]!);

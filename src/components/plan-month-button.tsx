@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/components/app-context";
 import { Button } from "@/components/ui/button";
 import { useFavorites, usePlanMonth, useRecipes } from "@/lib/db";
 import { usePantry } from "@/lib/pantry";
+import { feedbackSplit, planRules, useEvents, useFeedback } from "@/lib/household";
+import { SLOTS, isoDate, startOfWeek } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
 /**
@@ -30,6 +32,16 @@ export function PlanMonthButton({
   const planMonth = usePlanMonth();
   const [busy, setBusy] = useState(false);
 
+  // Real life for the four weeks Lily is about to plan.
+  const range = useMemo(() => {
+    const first = startOfWeek(new Date());
+    const last = new Date(first);
+    last.setDate(last.getDate() + 27);
+    return { from: isoDate(first), to: isoDate(last) };
+  }, []);
+  const events = useEvents(householdId, range.from, range.to);
+  const feedback = useFeedback(householdId);
+
   const run = async () => {
     if (!householdId || !people.length) return;
     if (!recipes.length) {
@@ -38,6 +50,8 @@ export function PlanMonthButton({
     }
     setBusy(true);
     try {
+      const rules = planRules(events.data ?? [], SLOTS);
+      const liked = feedbackSplit(feedback.data ?? []);
       const result = await planMonth.mutateAsync({
         householdId,
         people,
@@ -45,8 +59,18 @@ export function PlanMonthButton({
         favouriteRecipeIds: (favorites.data ?? []).map((f) => f.recipe_id),
         pantry: pantry.data ?? [],
         seed: reshuffle ? Math.floor(Math.random() * 97) + 1 : 0,
+        avoidRecipeIds: liked.never,
+        lovedRecipeIds: liked.loved,
+        skip: rules.skip,
+        quick: rules.quick,
+        guests: rules.guests,
       });
-      toast.success(`Four weeks planned — ${result.meals} meals and your shopping list 🌼`);
+      const extras: string[] = [];
+      if (rules.skip.length) extras.push("your days out left free");
+      if (Object.keys(rules.guests).length) extras.push("extra plates for your guests");
+      toast.success(
+        `Four weeks planned — ${result.meals} meals${extras.length ? `, ${extras.join(" and ")}` : ""} 🌼`,
+      );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Lily couldn't finish the plan. Try again?");
     } finally {

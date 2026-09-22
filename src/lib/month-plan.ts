@@ -54,20 +54,37 @@ export function generateMonth({
   people,
   favouriteRecipeIds = [],
   seed = 0,
+  avoidRecipeIds = [],
+  lovedRecipeIds = [],
+  skip = [],
+  quick = [],
+  guests = {},
 }: {
   start: Date;
   recipes: Recipe[];
   people: Profile[];
   favouriteRecipeIds?: string[];
   seed?: number;
+  /** Rated "never again" — never planned. */
+  avoidRecipeIds?: string[];
+  /** Rated "loved it" — planned more often. */
+  lovedRecipeIds?: string[];
+  /** "2026-09-25|dinner" keys nobody's eating at home for. */
+  skip?: string[];
+  /** Keys that must be as fast as possible (home late). */
+  quick?: string[];
+  /** Extra plates per "date|slot" key, from guests. */
+  guests?: Record<string, number>;
 }): GeneratedEntry[] {
-  const usable = recipes.filter(isPlannable);
+  const usable = recipes.filter(isPlannable).filter((r) => !avoidRecipeIds.includes(r.id));
   if (!usable.length || !people.length) return [];
 
   const restrictions = restrictionsFor(people);
   const relaxLunchRule = lunchRuleRelaxed(people);
   const dates = monthDates(start);
   const entries: GeneratedEntry[] = [];
+  const skipKeys = new Set(skip);
+  const quickKeys = new Set(quick);
 
   // Pool per slot, with favourites nudged to the front and protein-rich
   // dishes preferred for the main meals.
@@ -82,14 +99,15 @@ export function generateMonth({
     const hay = [r.title, ...r.ingredients.map((i) => i.name)].join(" ").toLowerCase();
     return prefer.some((w) => hay.includes(w));
   };
+  const wanted = (r: Recipe) => favouriteRecipeIds.includes(r.id) || lovedRecipeIds.includes(r.id);
 
   SLOTS.forEach((slot, slotIndex) => {
     const base = candidatesFor(usable, slot, restrictions, { relaxLunchRule }).filter(isPlannable);
     const scored = [...base].sort((a, b) => {
-      const fav = Number(favouriteRecipeIds.includes(b.id)) - Number(favouriteRecipeIds.includes(a.id));
+      const fav = Number(wanted(b)) - Number(wanted(a));
       if (fav) return fav;
-      const wanted = Number(preferred(b)) - Number(preferred(a));
-      if (wanted) return wanted;
+      const liked = Number(preferred(b)) - Number(preferred(a));
+      if (liked) return liked;
       const machine = methodScore(a, method) - methodScore(b, method);
       if (machine) return machine;
       if (slot === "lunch" || slot === "dinner") return b.protein - a.protein;
@@ -110,10 +128,18 @@ export function generateMonth({
     return `${recipe.cuisine.toLowerCase()}|${starch ?? "none"}`;
   };
 
+  const isFast = (recipe: Recipe) => recipe.prep_minutes + recipe.cook_minutes <= 25;
+
   dates.forEach((date, dayIndex) => {
     const usedToday = new Set<string>();
+    const iso = isoDate(date);
     SLOTS.forEach((slot, slotIndex) => {
-      const pool = pools[slot] ?? [];
+      const key = `${iso}|${slot}`;
+      // Real life: nobody's eating at home for this one, so Lily leaves it free.
+      if (skipKeys.has(key)) return;
+      const wantFast = quickKeys.has(key);
+      const full = pools[slot] ?? [];
+      const pool = wantFast && full.some(isFast) ? full.filter(isFast) : full;
       if (!pool.length) return;
       const gapWanted = pool.length > 5 ? 5 : pool.length > 3 ? 3 : 1;
       const offset = dayIndex * 2 + slotIndex * 3 + seed;
@@ -141,12 +167,11 @@ export function generateMonth({
       lastUsedOn.set(pick.id, dayIndex);
       lastStyleOn.set(styleOf(pick), dayIndex);
 
-      entries.push({
-        plan_date: isoDate(date),
-        slot,
-        recipe_id: pick.id,
-        portions: portionsFor(people, slot, pick),
-      });
+      const extraPlates = guests[key] ?? guests[`${iso}|all`] ?? 0;
+      const portions = portionsFor(people, slot, pick);
+      if (extraPlates > 0) portions["guests"] = extraPlates;
+
+      entries.push({ plan_date: iso, slot, recipe_id: pick.id, portions });
     });
   });
 

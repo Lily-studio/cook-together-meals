@@ -150,6 +150,91 @@ export type Database = {
           },
         ]
       }
+      household_events: {
+        Row: {
+          created_at: string
+          event_date: string
+          guests: number
+          household_id: string
+          id: string
+          kind: string
+          note: string
+          slot: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_date: string
+          guests?: number
+          household_id: string
+          id?: string
+          kind?: string
+          note?: string
+          slot?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          guests?: number
+          household_id?: string
+          id?: string
+          kind?: string
+          note?: string
+          slot?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_events_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      household_notes: {
+        Row: {
+          about_profile: string | null
+          created_at: string
+          from_name: string
+          handled: boolean
+          household_id: string
+          id: string
+          message: string
+          updated_at: string
+        }
+        Insert: {
+          about_profile?: string | null
+          created_at?: string
+          from_name?: string
+          handled?: boolean
+          household_id: string
+          id?: string
+          message: string
+          updated_at?: string
+        }
+        Update: {
+          about_profile?: string | null
+          created_at?: string
+          from_name?: string
+          handled?: boolean
+          household_id?: string
+          id?: string
+          message?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_notes_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       households: {
         Row: {
           created_at: string
@@ -211,6 +296,60 @@ export type Database = {
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meal_feedback: {
+        Row: {
+          created_at: string
+          household_id: string
+          id: string
+          note: string
+          plan_date: string | null
+          profile_id: string
+          rating: string
+          recipe_id: string | null
+          slot: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          household_id: string
+          id?: string
+          note?: string
+          plan_date?: string | null
+          profile_id: string
+          rating?: string
+          recipe_id?: string | null
+          slot?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          household_id?: string
+          id?: string
+          note?: string
+          plan_date?: string | null
+          profile_id?: string
+          rating?: string
+          recipe_id?: string | null
+          slot?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_feedback_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_feedback_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
         ]
