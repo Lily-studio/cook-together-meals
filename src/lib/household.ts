@@ -351,3 +351,29 @@ export function useNoteMutations(householdId: string | undefined) {
 
   return { add, setHandled, remove };
 }
+
+/* ---------------- turning real life into planning rules ---------------- */
+
+/**
+ * Translates the household's events into the exact instructions the month
+ * planner understands: which meals to leave out, which ones must be quick,
+ * and how many extra plates to cook.
+ */
+export function planRules(events: HouseholdEvent[], slots: readonly string[]) {
+  const skip: string[] = [];
+  const quick: string[] = [];
+  const guests: Record<string, number> = {};
+
+  events.forEach((event) => {
+    const kind = eventKind(event.kind);
+    const targets = event.slot ? [event.slot] : [...slots];
+    targets.forEach((slot) => {
+      const key = `${event.event_date}|${slot}`;
+      if (kind.skips) skip.push(key);
+      if (kind.quick) quick.push(key);
+      if (kind.counts && event.guests > 0) guests[key] = (guests[key] ?? 0) + event.guests;
+    });
+  });
+
+  return { skip, quick, guests };
+}
