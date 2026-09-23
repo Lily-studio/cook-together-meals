@@ -16,6 +16,8 @@ import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedFavoritesRouteImport } from './routes/_authenticated/favorites'
 import { Route as AuthenticatedGroceryRouteImport } from './routes/_authenticated/grocery'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedHouseholdRouteImport } from './routes/_authenticated/household'
+import { Route as AuthenticatedKitchenRouteImport } from './routes/_authenticated/kitchen'
 import { Route as AuthenticatedLilyRouteImport } from './routes/_authenticated/lily'
 import { Route as AuthenticatedMonthRouteImport } from './routes/_authenticated/month'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -60,6 +62,16 @@ const AuthenticatedGroceryRoute = AuthenticatedGroceryRouteImport.update({
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHouseholdRoute = AuthenticatedHouseholdRouteImport.update({
+  id: '/household',
+  path: '/household',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedKitchenRoute = AuthenticatedKitchenRouteImport.update({
+  id: '/kitchen',
+  path: '/kitchen',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedLilyRoute = AuthenticatedLilyRouteImport.update({
@@ -125,6 +137,8 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/grocery': typeof AuthenticatedGroceryRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/household': typeof AuthenticatedHouseholdRoute
+  '/kitchen': typeof AuthenticatedKitchenRoute
   '/lily': typeof AuthenticatedLilyRoute
   '/month': typeof AuthenticatedMonthRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -144,6 +158,8 @@ export interface FileRoutesByTo {
   '/favorites': typeof AuthenticatedFavoritesRoute
   '/grocery': typeof AuthenticatedGroceryRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/household': typeof AuthenticatedHouseholdRoute
+  '/kitchen': typeof AuthenticatedKitchenRoute
   '/lily': typeof AuthenticatedLilyRoute
   '/month': typeof AuthenticatedMonthRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -165,6 +181,8 @@ export interface FileRoutesById {
   '/_authenticated/favorites': typeof AuthenticatedFavoritesRoute
   '/_authenticated/grocery': typeof AuthenticatedGroceryRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/household': typeof AuthenticatedHouseholdRoute
+  '/_authenticated/kitchen': typeof AuthenticatedKitchenRoute
   '/_authenticated/lily': typeof AuthenticatedLilyRoute
   '/_authenticated/month': typeof AuthenticatedMonthRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -186,6 +204,8 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/grocery'
     | '/home'
+    | '/household'
+    | '/kitchen'
     | '/lily'
     | '/month'
     | '/onboarding'
@@ -205,6 +225,8 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/grocery'
     | '/home'
+    | '/household'
+    | '/kitchen'
     | '/lily'
     | '/month'
     | '/onboarding'
@@ -225,6 +247,8 @@ export interface FileRouteTypes {
     | '/_authenticated/favorites'
     | '/_authenticated/grocery'
     | '/_authenticated/home'
+    | '/_authenticated/household'
+    | '/_authenticated/kitchen'
     | '/_authenticated/lily'
     | '/_authenticated/month'
     | '/_authenticated/onboarding'
@@ -294,6 +318,20 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/household': {
+      id: '/_authenticated/household'
+      path: '/household'
+      fullPath: '/household'
+      preLoaderRoute: typeof AuthenticatedHouseholdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/kitchen': {
+      id: '/_authenticated/kitchen'
+      path: '/kitchen'
+      fullPath: '/kitchen'
+      preLoaderRoute: typeof AuthenticatedKitchenRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/lily': {
@@ -381,6 +419,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFavoritesRoute: typeof AuthenticatedFavoritesRoute
   AuthenticatedGroceryRoute: typeof AuthenticatedGroceryRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedHouseholdRoute: typeof AuthenticatedHouseholdRoute
+  AuthenticatedKitchenRoute: typeof AuthenticatedKitchenRoute
   AuthenticatedLilyRoute: typeof AuthenticatedLilyRoute
   AuthenticatedMonthRoute: typeof AuthenticatedMonthRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
@@ -398,6 +438,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFavoritesRoute: AuthenticatedFavoritesRoute,
   AuthenticatedGroceryRoute: AuthenticatedGroceryRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedHouseholdRoute: AuthenticatedHouseholdRoute,
+  AuthenticatedKitchenRoute: AuthenticatedKitchenRoute,
   AuthenticatedLilyRoute: AuthenticatedLilyRoute,
   AuthenticatedMonthRoute: AuthenticatedMonthRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
