@@ -50,7 +50,7 @@ export const Route = createFileRoute("/_authenticated/household")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: HouseholdPage;
+  component: HouseholdPage,
 });
 
 function addDays(iso: string, days: number) {
