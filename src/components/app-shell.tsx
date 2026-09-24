@@ -9,6 +9,7 @@ import {
   Package,
   ShoppingBasket,
   Sparkles,
+  Users,
 } from "lucide-react";
 import { LilyAvatar, type LilyMood } from "@/components/lily";
 import { FloatingVeg } from "@/components/floating-veg";
