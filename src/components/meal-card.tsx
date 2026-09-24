@@ -237,6 +237,17 @@ export function MealCard({
         </div>
       </div>
 
+      {skipped || (noteEvent && !skipped) ? (
+        <p className="mt-2.5 rounded-2xl bg-secondary/60 px-3 py-2 text-[12px]">
+          {eventKind(noteEvent?.kind ?? "eating_out").emoji}{" "}
+          <span className="font-semibold">
+            {skipped ? "You're not eating in for this one" : "Home late — keeping it quick"}
+          </span>
+          {noteEvent?.note ? ` — ${noteEvent.note}` : ""}
+          {skipped ? ". Nothing to cook, nothing wasted." : "."}
+        </p>
+      ) : null}
+
       {recipe && split ? (
         <div className="mt-3 border-t border-border/60 pt-3">
           <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
