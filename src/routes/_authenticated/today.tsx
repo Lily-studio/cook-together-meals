@@ -22,6 +22,8 @@ import {
   useUpdatePlanEntry,
 } from "@/lib/db";
 import { lowStock, usePantry } from "@/lib/pantry";
+import { EVENT_KINDS, eventLabel, useEvents, useFeedback } from "@/lib/household";
+import { noticePatterns } from "@/lib/patterns";
 import { defrostList, leftoverIdeas, openedToUse, repetitionIssues } from "@/lib/quick";
 import { portionsFor } from "@/lib/planner";
 import { SLOTS, SLOT_LABELS, dayLabel, isoDate, prettyDate } from "@/lib/nutrition";
