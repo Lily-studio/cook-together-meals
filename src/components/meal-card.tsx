@@ -68,6 +68,7 @@ export function MealCard({
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [swapFor, setSwapFor] = useState<{ name: string; amount: string } | null>(null);
   const [cookOpen, setCookOpen] = useState(false);
+  const events = useEvents(householdId, date, date);
 
   const recipe = entry?.recipes ?? null;
   const swaps = entry?.swaps ?? {};
@@ -77,6 +78,12 @@ export function MealCard({
   const portions: Record<string, number> = recipe
     ? { ...portionsFor(people, slot, recipe), ...(entry?.portions ?? {}) }
     : (entry?.portions ?? {});
+
+  // Real life for this exact meal: guests coming, or nobody eating in.
+  const dayEvents = events.data ?? [];
+  const guests = Math.max(guestsFor(dayEvents, date, slot), Math.round(portions["guests"] ?? 0));
+  const skipped = mealSkipped(dayEvents, date, slot);
+  const noteEvent = eventsFor(dayEvents, date, slot).find((e) => eventKind(e.kind).skips || eventKind(e.kind).quick);
 
   const adjust = (profileId: string, delta: number) => {
     if (!entry) return;
