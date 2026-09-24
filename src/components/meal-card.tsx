@@ -17,7 +17,9 @@ import { Card } from "@/components/app-shell";
 import { accentOf, useApp } from "@/components/app-context";
 import { CookingMode } from "@/components/cooking-mode";
 import { MealCost } from "@/components/meal-cost";
+import { MealFeedbackRow } from "@/components/meal-feedback";
 import { RecipePicker } from "@/components/recipe-picker";
+import { ServingCalculatorButton } from "@/components/serving-calculator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   useAddLog,
@@ -34,7 +36,8 @@ import { SLOT_EMOJI, SLOT_LABELS, scaleMacros } from "@/lib/nutrition";
 import { portionsFor } from "@/lib/planner";
 import { suggestSwaps } from "@/lib/portions";
 import { cheaperIdea, servingVariant, whyThisMeal } from "@/lib/lily-brain";
-import { formatGrams, splitDish } from "@/lib/dish";
+import { formatGrams, portionGrams, splitDish } from "@/lib/dish";
+import { eventsFor, eventKind, guestsFor, mealSkipped, useEvents } from "@/lib/household";
 import { ingredientsUsed, usePantry, usePantryMutations } from "@/lib/pantry";
 import { cn } from "@/lib/utils";
 
