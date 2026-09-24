@@ -302,6 +302,17 @@ export function MealCard({
             })}
           </ul>
 
+          {guests > 0 ? (
+            <p className="mt-2 rounded-2xl bg-caramel/12 px-3 py-2 text-[12px] text-muted-foreground">
+              👋{" "}
+              <span className="font-semibold text-foreground">
+                {guests} guest{guests === 1 ? "" : "s"} eating too
+              </span>{" "}
+              — cook about {formatGrams(portionGrams(recipe, guests, swaps))} more, roughly{" "}
+              {formatGrams(portionGrams(recipe, 1, swaps))} a plate.
+            </p>
+          ) : null}
+
           {split.leftover > 0 ? (
             <p className="mt-2 rounded-2xl bg-butter/45 px-3 py-2 text-[12px] text-muted-foreground">
               🧊 {formatGrams(split.leftover)} left over — pop it in the fridge, that's another meal sorted.
@@ -384,6 +395,16 @@ export function MealCard({
           </button>
 
           <MealCost recipe={recipe} batches={split.batches} className="mt-2" swaps={swaps} />
+
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            <ServingCalculatorButton
+              recipe={recipe}
+              swaps={swaps}
+              plannedFor={shown.length + guests}
+            />
+          </div>
+
+          <MealFeedbackRow recipeId={recipe.id} date={date} slot={slot} className="mt-2.5" />
         </div>
       ) : null}
 
