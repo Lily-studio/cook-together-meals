@@ -6,6 +6,7 @@ import {
   ChefHat,
   Compass,
   Heart,
+  Home,
   LineChart,
   MessagesSquare,
   NotebookPen,
@@ -14,6 +15,7 @@ import {
   ShoppingBasket,
   Sparkles,
   UtensilsCrossed,
+  Users,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useApp } from "@/components/app-context";
@@ -49,6 +51,8 @@ type HubPath =
   | "/grocery"
   | "/pantry"
   | "/prep"
+  | "/kitchen"
+  | "/household"
   | "/discover"
   | "/favorites"
   | "/tell-lily"
@@ -90,9 +94,17 @@ const TILES: Tile[] = [
     blurb: "What's at home, what to use soon, what's prepped.",
     icon: Package,
     links: [
+      { to: "/kitchen", label: "My kitchen today", icon: Home },
       { to: "/pantry", label: "My stock", icon: Package },
       { to: "/prep", label: "Prep ahead", icon: ChefHat },
     ],
+  },
+  {
+    emoji: "👨‍👩‍👧",
+    title: "My household",
+    blurb: "Who's eating, guests coming, and days that don't go to plan.",
+    icon: Users,
+    links: [{ to: "/household", label: "People, guests & plans", icon: Users }],
   },
   {
     emoji: "👩‍🍳",

@@ -17,7 +17,9 @@ import { Card } from "@/components/app-shell";
 import { accentOf, useApp } from "@/components/app-context";
 import { CookingMode } from "@/components/cooking-mode";
 import { MealCost } from "@/components/meal-cost";
+import { MealFeedbackRow } from "@/components/meal-feedback";
 import { RecipePicker } from "@/components/recipe-picker";
+import { ServingCalculatorButton } from "@/components/serving-calculator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   useAddLog,
@@ -34,7 +36,8 @@ import { SLOT_EMOJI, SLOT_LABELS, scaleMacros } from "@/lib/nutrition";
 import { portionsFor } from "@/lib/planner";
 import { suggestSwaps } from "@/lib/portions";
 import { cheaperIdea, servingVariant, whyThisMeal } from "@/lib/lily-brain";
-import { formatGrams, splitDish } from "@/lib/dish";
+import { formatGrams, portionGrams, splitDish } from "@/lib/dish";
+import { eventsFor, eventKind, guestsFor, mealSkipped, useEvents } from "@/lib/household";
 import { ingredientsUsed, usePantry, usePantryMutations } from "@/lib/pantry";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +68,7 @@ export function MealCard({
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [swapFor, setSwapFor] = useState<{ name: string; amount: string } | null>(null);
   const [cookOpen, setCookOpen] = useState(false);
+  const events = useEvents(householdId, date, date);
 
   const recipe = entry?.recipes ?? null;
   const swaps = entry?.swaps ?? {};
@@ -74,6 +78,12 @@ export function MealCard({
   const portions: Record<string, number> = recipe
     ? { ...portionsFor(people, slot, recipe), ...(entry?.portions ?? {}) }
     : (entry?.portions ?? {});
+
+  // Real life for this exact meal: guests coming, or nobody eating in.
+  const dayEvents = events.data ?? [];
+  const guests = Math.max(guestsFor(dayEvents, date, slot), Math.round(portions["guests"] ?? 0));
+  const skipped = mealSkipped(dayEvents, date, slot);
+  const noteEvent = eventsFor(dayEvents, date, slot).find((e) => eventKind(e.kind).skips || eventKind(e.kind).quick);
 
   const adjust = (profileId: string, delta: number) => {
     if (!entry) return;
@@ -227,6 +237,17 @@ export function MealCard({
         </div>
       </div>
 
+      {skipped || (noteEvent && !skipped) ? (
+        <p className="mt-2.5 rounded-2xl bg-secondary/60 px-3 py-2 text-[12px]">
+          {eventKind(noteEvent?.kind ?? "eating_out").emoji}{" "}
+          <span className="font-semibold">
+            {skipped ? "You're not eating in for this one" : "Home late — keeping it quick"}
+          </span>
+          {noteEvent?.note ? ` — ${noteEvent.note}` : ""}
+          {skipped ? ". Nothing to cook, nothing wasted." : "."}
+        </p>
+      ) : null}
+
       {recipe && split ? (
         <div className="mt-3 border-t border-border/60 pt-3">
           <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
@@ -291,6 +312,17 @@ export function MealCard({
               );
             })}
           </ul>
+
+          {guests > 0 ? (
+            <p className="mt-2 rounded-2xl bg-caramel/12 px-3 py-2 text-[12px] text-muted-foreground">
+              👋{" "}
+              <span className="font-semibold text-foreground">
+                {guests} guest{guests === 1 ? "" : "s"} eating too
+              </span>{" "}
+              — cook about {formatGrams(portionGrams(recipe, guests, swaps))} more, roughly{" "}
+              {formatGrams(portionGrams(recipe, 1, swaps))} a plate.
+            </p>
+          ) : null}
 
           {split.leftover > 0 ? (
             <p className="mt-2 rounded-2xl bg-butter/45 px-3 py-2 text-[12px] text-muted-foreground">
@@ -374,6 +406,16 @@ export function MealCard({
           </button>
 
           <MealCost recipe={recipe} batches={split.batches} className="mt-2" swaps={swaps} />
+
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            <ServingCalculatorButton
+              recipe={recipe}
+              swaps={swaps}
+              plannedFor={shown.length + guests}
+            />
+          </div>
+
+          <MealFeedbackRow recipeId={recipe.id} date={date} slot={slot} className="mt-2.5" />
         </div>
       ) : null}
 

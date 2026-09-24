@@ -22,6 +22,8 @@ import {
   useUpdatePlanEntry,
 } from "@/lib/db";
 import { lowStock, usePantry } from "@/lib/pantry";
+import { EVENT_KINDS, eventLabel, useEvents, useFeedback } from "@/lib/household";
+import { noticePatterns } from "@/lib/patterns";
 import { defrostList, leftoverIdeas, openedToUse, repetitionIssues } from "@/lib/quick";
 import { portionsFor } from "@/lib/planner";
 import { SLOTS, SLOT_LABELS, dayLabel, isoDate, prettyDate } from "@/lib/nutrition";
@@ -154,6 +156,26 @@ function Today() {
     [pantry.data, monthEntries, recipes, todayIso],
   );
 
+  // Real life for this day, and the things Lily has quietly noticed.
+  const dayEvents = useEvents(householdId, date, date);
+  const patternEvents = useEvents(householdId, isoDate(addDays(todayIso, -28)), isoDate(addDays(todayIso, 27)));
+  const feedback = useFeedback(householdId);
+  const insights = useMemo(
+    () =>
+      recipes.length
+        ? noticePatterns({
+            entries: monthEntries,
+            recipes,
+            feedback: feedback.data ?? [],
+            events: patternEvents.data ?? [],
+            today: todayIso,
+          })
+        : [],
+    [monthEntries, recipes, feedback.data, patternEvents.data, todayIso],
+  );
+
+
+
   return (
     <AppShell
       title={isToday ? greeting(me?.display_name ?? "there") : prettyDate(viewed)}
@@ -213,6 +235,41 @@ function Today() {
       </LilySays>
 
       <LilyQuick date={date} entries={entries} />
+
+      {(dayEvents.data ?? []).length ? (
+        <Card className="mt-3 bg-secondary/60">
+          <p className="font-display text-[15px] font-semibold">Today's plans 📅</p>
+          <ul className="mt-1.5 grid gap-1.5">
+            {(dayEvents.data ?? []).map((e) => (
+              <li key={e.id} className="flex items-center gap-2 text-[13px]">
+                <span aria-hidden>{EVENT_KINDS.find((k) => k.value === e.kind)?.emoji ?? "📅"}</span>
+                <span className="min-w-0 flex-1">{eventLabel(e)}</span>
+              </li>
+            ))}
+          </ul>
+          <Link
+            to="/household"
+            className="mt-2 inline-block text-[12px] font-semibold text-caramel hover:underline"
+          >
+            Tell me about another day
+          </Link>
+        </Card>
+      ) : null}
+
+      {insights.length ? (
+        <Card className="mt-3 bg-butter/40">
+          <p className="font-display text-[15px] font-semibold">Things I've noticed 👀</p>
+          <ul className="mt-1.5 grid gap-1.5">
+            {insights.slice(0, 3).map((i) => (
+              <li key={i.text} className="flex items-start gap-2 text-[13px] text-muted-foreground">
+                <span aria-hidden>{i.emoji}</span>
+                <span className="min-w-0 flex-1">{i.text}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
 
       {opened.length ? (
         <Card className="mt-3 bg-terracotta/10">

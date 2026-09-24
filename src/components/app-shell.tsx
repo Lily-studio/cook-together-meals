@@ -9,6 +9,7 @@ import {
   Package,
   ShoppingBasket,
   Sparkles,
+  Users,
 } from "lucide-react";
 import { LilyAvatar, type LilyMood } from "@/components/lily";
 import { FloatingVeg } from "@/components/floating-veg";
@@ -26,6 +27,8 @@ type NavItem = {
     | "/lily"
     | "/pantry"
     | "/prep"
+    | "/kitchen"
+    | "/household"
     | "/talk";
   label: string;
   icon?: typeof Home;
@@ -41,8 +44,10 @@ const NAV: NavItem[] = [
   { to: "/week", label: "My Week", icon: CalendarDays, desktopOnly: true, group: "🍽️ Meals" },
   { to: "/month", label: "My Month", icon: CalendarRange, desktopOnly: true, group: "🍽️ Meals" },
   { to: "/grocery", label: "Groceries", icon: ShoppingBasket, group: "🛒 Groceries" },
+  { to: "/kitchen", label: "My kitchen today", icon: Home, desktopOnly: true, group: "🏠 My kitchen" },
   { to: "/pantry", label: "My Stock", icon: Package, desktopOnly: true, group: "🏠 My kitchen" },
   { to: "/prep", label: "Prep ahead", icon: Sparkles, desktopOnly: true, group: "🏠 My kitchen" },
+  { to: "/household", label: "My household", icon: Users, desktopOnly: true, group: "👨‍👩‍👧 Household" },
   { to: "/favorites", label: "Favourites", icon: Heart, group: "❤️ Favourites" },
   { to: "/lily", label: "Lily", lily: true, group: "💬 Lily" },
   { to: "/talk", label: "Talk to Lily", icon: MessagesSquare, desktopOnly: true, group: "💬 Lily" },

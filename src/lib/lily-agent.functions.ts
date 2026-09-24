@@ -41,6 +41,10 @@ export type LilyAction =
   | { kind: "favorite"; title: string }
   | { kind: "prep_add"; title: string; portions?: number }
   | { kind: "navigate"; to: string; label: string }
+  | { kind: "add_event"; date: string; event: string; slot?: string; guests?: number; note?: string }
+  | { kind: "set_guests"; date: string; slot?: string; guests: number }
+  | { kind: "household_note"; message: string; from?: string }
+  | { kind: "rate_meal"; date: string; slot: string; rating: string; note?: string }
   | { kind: "delete_month_plan" };
 
 export type LilyReply = { reply: string; actions: LilyAction[] } | { error: string };
@@ -69,10 +73,14 @@ Allowed actions (copy the shapes exactly):
 {"kind":"favorite","title":"Chicken Shawarma Wrap"}
 {"kind":"prep_add","title":"Turkey meatballs","portions":4}
 {"kind":"navigate","to":"/grocery","label":"Open grocery list"}
+{"kind":"add_event","date":"2026-09-18","event":"eating_out|away|late|guests","slot":"dinner","guests":2,"note":"My parents are coming"}
+{"kind":"set_guests","date":"2026-09-18","slot":"dinner","guests":3}   extra plates for one meal only
+{"kind":"household_note","message":"Nabil doesn't want this tonight","from":"Nabil"}
+{"kind":"rate_meal","date":"2026-09-16","slot":"dinner","rating":"loved|okay|never_again","note":""}
 {"kind":"delete_month_plan"}                                  only if they clearly ask to wipe the whole plan
 
-Slots are exactly: breakfast, snack_am, lunch, snack_pm, dinner.
-Pages you may navigate to: /today /week /month /grocery /pantry /prep /favorites /discover /tell-lily /lily /settings
+Slots are exactly: breakfast, snack_am, lunch, snack_pm, dinner. Leave "slot" out of an event when it covers the whole day.
+Pages you may navigate to: /today /week /month /grocery /pantry /prep /kitchen /household /favorites /discover /tell-lily /lily /settings
 Dates are always YYYY-MM-DD. Use the TODAY value from the kitchen summary to resolve "today", "tomorrow", "tonight", "Friday".
 
 Rules:
@@ -81,6 +89,9 @@ Rules:
 - "I don't like today's lunch" → one replace_meal for that slot only, never the whole day.
 - Pair a change with a navigate action when seeing it helps.
 - Add units in grocery amounts (g, kg, ml, L, pieces).
+- "I'm eating out Friday", "working late Tuesday", "guests Saturday", "not home for lunch" → add_event for just that day and slot; do not touch the rest of the plan.
+- "my parents are coming for dinner tonight" → set_guests (plus add_event only if they want it remembered as a plan).
+- Someone in the house passing on a message or a preference → household_note, and remember_avoid too only if it's lasting.
 - Answer questions about the plan, pantry or targets from the kitchen summary. If it isn't in there, say you don't know instead of guessing.`;
 
 export const lilyCommand = createServerFn({ method: "POST" })
