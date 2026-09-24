@@ -236,6 +236,41 @@ function Today() {
 
       <LilyQuick date={date} entries={entries} />
 
+      {(dayEvents.data ?? []).length ? (
+        <Card className="mt-3 bg-secondary/60">
+          <p className="font-display text-[15px] font-semibold">Today's plans 📅</p>
+          <ul className="mt-1.5 grid gap-1.5">
+            {(dayEvents.data ?? []).map((e) => (
+              <li key={e.id} className="flex items-center gap-2 text-[13px]">
+                <span aria-hidden>{EVENT_KINDS.find((k) => k.value === e.kind)?.emoji ?? "📅"}</span>
+                <span className="min-w-0 flex-1">{eventLabel(e)}</span>
+              </li>
+            ))}
+          </ul>
+          <Link
+            to="/household"
+            className="mt-2 inline-block text-[12px] font-semibold text-caramel hover:underline"
+          >
+            Tell me about another day
+          </Link>
+        </Card>
+      ) : null}
+
+      {insights.length ? (
+        <Card className="mt-3 bg-butter/40">
+          <p className="font-display text-[15px] font-semibold">Things I've noticed 👀</p>
+          <ul className="mt-1.5 grid gap-1.5">
+            {insights.slice(0, 3).map((i) => (
+              <li key={i.text} className="flex items-start gap-2 text-[13px] text-muted-foreground">
+                <span aria-hidden>{i.emoji}</span>
+                <span className="min-w-0 flex-1">{i.text}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
+
+
       {opened.length ? (
         <Card className="mt-3 bg-terracotta/10">
           <p className="font-display text-[15px] font-semibold">Use this first 🫙</p>
