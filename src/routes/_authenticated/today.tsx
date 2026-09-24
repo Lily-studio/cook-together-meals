@@ -156,6 +156,26 @@ function Today() {
     [pantry.data, monthEntries, recipes, todayIso],
   );
 
+  // Real life for this day, and the things Lily has quietly noticed.
+  const dayEvents = useEvents(householdId, date, date);
+  const patternEvents = useEvents(householdId, isoDate(addDays(todayIso, -28)), isoDate(addDays(todayIso, 27)));
+  const feedback = useFeedback(householdId);
+  const insights = useMemo(
+    () =>
+      recipes.length
+        ? noticePatterns({
+            entries: monthEntries,
+            recipes,
+            feedback: feedback.data ?? [],
+            events: patternEvents.data ?? [],
+            today: todayIso,
+          })
+        : [],
+    [monthEntries, recipes, feedback.data, patternEvents.data, todayIso],
+  );
+
+
+
   return (
     <AppShell
       title={isToday ? greeting(me?.display_name ?? "there") : prettyDate(viewed)}
