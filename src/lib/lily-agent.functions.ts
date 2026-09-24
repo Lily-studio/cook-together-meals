@@ -89,6 +89,9 @@ Rules:
 - "I don't like today's lunch" → one replace_meal for that slot only, never the whole day.
 - Pair a change with a navigate action when seeing it helps.
 - Add units in grocery amounts (g, kg, ml, L, pieces).
+- "I'm eating out Friday", "working late Tuesday", "guests Saturday", "not home for lunch" → add_event for just that day and slot; do not touch the rest of the plan.
+- "my parents are coming for dinner tonight" → set_guests (plus add_event only if they want it remembered as a plan).
+- Someone in the house passing on a message or a preference → household_note, and remember_avoid too only if it's lasting.
 - Answer questions about the plan, pantry or targets from the kitchen summary. If it isn't in there, say you don't know instead of guessing.`;
 
 export const lilyCommand = createServerFn({ method: "POST" })
