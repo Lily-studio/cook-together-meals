@@ -41,6 +41,10 @@ export type LilyAction =
   | { kind: "favorite"; title: string }
   | { kind: "prep_add"; title: string; portions?: number }
   | { kind: "navigate"; to: string; label: string }
+  | { kind: "add_event"; date: string; event: string; slot?: string; guests?: number; note?: string }
+  | { kind: "set_guests"; date: string; slot?: string; guests: number }
+  | { kind: "household_note"; message: string; from?: string }
+  | { kind: "rate_meal"; date: string; slot: string; rating: string; note?: string }
   | { kind: "delete_month_plan" };
 
 export type LilyReply = { reply: string; actions: LilyAction[] } | { error: string };
