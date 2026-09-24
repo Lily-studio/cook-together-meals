@@ -6,6 +6,7 @@ import {
   ChefHat,
   Compass,
   Heart,
+  Home,
   LineChart,
   MessagesSquare,
   NotebookPen,
@@ -14,6 +15,7 @@ import {
   ShoppingBasket,
   Sparkles,
   UtensilsCrossed,
+  Users,
 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { useApp } from "@/components/app-context";
