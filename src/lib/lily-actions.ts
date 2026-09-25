@@ -346,7 +346,7 @@ export function useLilyActions() {
             },
           ]);
           if (error) throw error;
-          refresh(["household-events"]);
+          refresh(["events"]);
           done.push(`Noted for ${action.date}${action.slot ? ` (${SLOT_LABELS[action.slot] ?? action.slot})` : ""}.`);
           break;
         }
@@ -379,7 +379,7 @@ export function useLilyActions() {
             ]);
             if (error) throw error;
           }
-          refresh(["household-events", "plan"]);
+          refresh(["events", "plan"]);
           done.push(
             guests
               ? `${guests} extra plate${guests === 1 ? "" : "s"} on ${action.date} — I'll cook more.`
@@ -421,7 +421,7 @@ export function useLilyActions() {
             },
           ]);
           if (error) throw error;
-          refresh(["meal-feedback"]);
+          refresh(["feedback"]);
           done.push(
             action.rating === "never_again"
               ? "Understood — I won't plan that one again."
