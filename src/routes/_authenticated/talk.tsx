@@ -14,6 +14,7 @@ import { thisWeekStart, useGrocery, useLogs, usePlan, usePrepBatches } from "@/l
 import { usePantry } from "@/lib/pantry";
 import { formatStock } from "@/lib/portions";
 import { methodLabel } from "@/lib/cooking-method";
+import { useEvents, useFeedback, useHouseholdNotes } from "@/lib/household";
 import { SLOT_LABELS, isoDate } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +70,9 @@ function TalkToLily() {
   const prep = usePrepBatches(householdId);
   const ask = useServerFn(lilyCommand);
   const { run } = useLilyActions();
+  const events = useEvents(householdId, today, isoDate(new Date(Date.now() + 14 * 86_400_000)));
+  const notes = useHouseholdNotes(householdId);
+  const feedback = useFeedback(householdId);
 
   const [turns, setTurns] = useState<Bubble[]>([
     {
