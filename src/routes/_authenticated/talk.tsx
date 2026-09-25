@@ -120,8 +120,48 @@ function TalkToLily() {
     const list = grocery.data ?? [];
     if (list.length)
       lines.push(`Grocery list this week: ${list.map((i) => `${i.name} ${i.amount}`).join("; ")}.`);
+    const upcoming = events.data ?? [];
+    if (upcoming.length)
+      lines.push(
+        `Real life coming up: ${upcoming
+          .map(
+            (e) =>
+              `${e.event_date}${e.slot ? ` ${e.slot}` : " all day"} ${e.kind}${
+                e.guests ? ` (+${e.guests} guests)` : ""
+              }${e.note ? ` — ${e.note}` : ""}`,
+          )
+          .join("; ")}.`,
+      );
+    const messages = (notes.data ?? []).filter((n) => !n.handled);
+    if (messages.length)
+      lines.push(
+        `Household messages waiting: ${messages
+          .map((n) => `${n.from_name || "someone"}: ${n.message}`)
+          .join("; ")}.`,
+      );
+    const rated = feedback.data ?? [];
+    if (rated.length)
+      lines.push(
+        `Recent meal feedback: ${rated
+          .slice(0, 12)
+          .map((f) => `${f.plan_date ?? ""} ${f.slot ?? ""} ${f.rating}`)
+          .join("; ")}.`,
+      );
     return lines.join("\n").slice(0, 8800);
-  }, [people, me, plan.data, logs.data, pantry.data, grocery.data, prep.data, today, tomorrow]);
+  }, [
+    people,
+    me,
+    plan.data,
+    logs.data,
+    pantry.data,
+    grocery.data,
+    prep.data,
+    events.data,
+    notes.data,
+    feedback.data,
+    today,
+    tomorrow,
+  ]);
 
   const scrollDown = () =>
     requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: "smooth" }));
