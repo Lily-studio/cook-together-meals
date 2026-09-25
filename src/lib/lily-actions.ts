@@ -334,6 +334,101 @@ export function useLilyActions() {
           done.push("Your plan is cleared — say the word and I'll build a fresh month.");
           break;
         }
+        case "add_event": {
+          const { error } = await db.from("household_events").insert([
+            {
+              household_id: householdId,
+              event_date: action.date,
+              slot: action.slot ?? null,
+              kind: action.event,
+              guests: Math.max(0, Math.round(action.guests ?? 0)),
+              note: action.note ?? "",
+            },
+          ]);
+          if (error) throw error;
+          refresh(["events"]);
+          done.push(`Noted for ${action.date}${action.slot ? ` (${SLOT_LABELS[action.slot] ?? action.slot})` : ""}.`);
+          break;
+        }
+        case "set_guests": {
+          const guests = Math.max(0, Math.round(action.guests ?? 0));
+          const { data: existing } = await db
+            .from("household_events")
+            .select("id")
+            .eq("household_id", householdId)
+            .eq("event_date", action.date)
+            .eq("kind", "guests")
+            .limit(1);
+          const row = (existing as { id: string }[] | null)?.[0];
+          if (row) {
+            const { error } = await db
+              .from("household_events")
+              .update({ guests, slot: action.slot ?? null })
+              .eq("id", row.id);
+            if (error) throw error;
+          } else {
+            const { error } = await db.from("household_events").insert([
+              {
+                household_id: householdId,
+                event_date: action.date,
+                slot: action.slot ?? null,
+                kind: "guests",
+                guests,
+                note: "",
+              },
+            ]);
+            if (error) throw error;
+          }
+          refresh(["events", "plan"]);
+          done.push(
+            guests
+              ? `${guests} extra plate${guests === 1 ? "" : "s"} on ${action.date} — I'll cook more.`
+              : `No extra plates on ${action.date} any more.`,
+          );
+          break;
+        }
+        case "household_note": {
+          const { error } = await db.from("household_notes").insert([
+            {
+              household_id: householdId,
+              from_name: action.from ?? "",
+              message: action.message,
+            },
+          ]);
+          if (error) throw error;
+          refresh(["household-notes"]);
+          done.push("I've written that down for the household.");
+          break;
+        }
+        case "rate_meal": {
+          const { data: rows } = await db
+            .from("meal_plan_entries")
+            .select("recipe_id")
+            .eq("household_id", householdId)
+            .eq("plan_date", action.date)
+            .eq("slot", action.slot)
+            .limit(1);
+          const recipeId = (rows as { recipe_id: string | null }[] | null)?.[0]?.recipe_id ?? null;
+          const { error } = await db.from("meal_feedback").insert([
+            {
+              household_id: householdId,
+              profile_id: me.id,
+              recipe_id: recipeId,
+              plan_date: action.date,
+              slot: action.slot,
+              rating: action.rating,
+              note: action.note ?? "",
+            },
+          ]);
+          if (error) throw error;
+          refresh(["feedback"]);
+          done.push(
+            action.rating === "never_again"
+              ? "Understood — I won't plan that one again."
+              : "Thanks, that helps me plan better.",
+          );
+          break;
+        }
         case "navigate": {
           navigate = { to: action.to, label: action.label || "Take me there" };
           break;

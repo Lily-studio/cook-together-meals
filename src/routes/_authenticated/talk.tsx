@@ -14,6 +14,7 @@ import { thisWeekStart, useGrocery, useLogs, usePlan, usePrepBatches } from "@/l
 import { usePantry } from "@/lib/pantry";
 import { formatStock } from "@/lib/portions";
 import { methodLabel } from "@/lib/cooking-method";
+import { useEvents, useFeedback, useHouseholdNotes } from "@/lib/household";
 import { SLOT_LABELS, isoDate } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +70,9 @@ function TalkToLily() {
   const prep = usePrepBatches(householdId);
   const ask = useServerFn(lilyCommand);
   const { run } = useLilyActions();
+  const events = useEvents(householdId, today, isoDate(new Date(Date.now() + 14 * 86_400_000)));
+  const notes = useHouseholdNotes(householdId);
+  const feedback = useFeedback(householdId);
 
   const [turns, setTurns] = useState<Bubble[]>([
     {
@@ -120,8 +124,48 @@ function TalkToLily() {
     const list = grocery.data ?? [];
     if (list.length)
       lines.push(`Grocery list this week: ${list.map((i) => `${i.name} ${i.amount}`).join("; ")}.`);
+    const upcoming = events.data ?? [];
+    if (upcoming.length)
+      lines.push(
+        `Real life coming up: ${upcoming
+          .map(
+            (e) =>
+              `${e.event_date}${e.slot ? ` ${e.slot}` : " all day"} ${e.kind}${
+                e.guests ? ` (+${e.guests} guests)` : ""
+              }${e.note ? ` — ${e.note}` : ""}`,
+          )
+          .join("; ")}.`,
+      );
+    const messages = (notes.data ?? []).filter((n) => !n.handled);
+    if (messages.length)
+      lines.push(
+        `Household messages waiting: ${messages
+          .map((n) => `${n.from_name || "someone"}: ${n.message}`)
+          .join("; ")}.`,
+      );
+    const rated = feedback.data ?? [];
+    if (rated.length)
+      lines.push(
+        `Recent meal feedback: ${rated
+          .slice(0, 12)
+          .map((f) => `${f.plan_date ?? ""} ${f.slot ?? ""} ${f.rating}`)
+          .join("; ")}.`,
+      );
     return lines.join("\n").slice(0, 8800);
-  }, [people, me, plan.data, logs.data, pantry.data, grocery.data, prep.data, today, tomorrow]);
+  }, [
+    people,
+    me,
+    plan.data,
+    logs.data,
+    pantry.data,
+    grocery.data,
+    prep.data,
+    events.data,
+    notes.data,
+    feedback.data,
+    today,
+    tomorrow,
+  ]);
 
   const scrollDown = () =>
     requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: "smooth" }));
