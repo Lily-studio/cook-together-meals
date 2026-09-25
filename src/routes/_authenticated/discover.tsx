@@ -130,7 +130,50 @@ function Discover() {
 
   return (
     <AppShell title="Discover" subtitle="Warm, affordable, Moroccan-friendly">
-      <div className="relative">
+      <LilySays mood="happy">
+        Fancy something different? I'll find a meal from a kitchen you haven't cooked from lately — still inside
+        your goals, your dislikes and your budget.
+      </LilySays>
+
+      <Card className="mt-3 bg-butter/40">
+        <div className="flex items-center gap-2">
+          <Globe2 className="size-4 text-caramel" />
+          <p className="font-display text-[16px] font-semibold">Discover something new</p>
+        </div>
+        {surprise ? (
+          <div className="mt-2">
+            <p className="text-[13px]">
+              <span aria-hidden>{surprise.emoji}</span>{" "}
+              <span className="font-semibold">{surprise.title}</span> — {surprise.cuisine}. {surprise.tagline}
+            </p>
+            <p className="mt-0.5 text-[12px] text-muted-foreground">
+              {surprise.calories} kcal · {surprise.protein}g protein ·{" "}
+              {surprise.prep_minutes + surprise.cook_minutes} min
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button size="sm" className="rounded-full" onClick={() => cookTomorrow(surprise)}>
+                Cook it tomorrow
+              </Button>
+              <Button size="sm" variant="secondary" className="rounded-full" onClick={pickSomethingNew}>
+                Something else
+              </Button>
+              <Link
+                to="/recipes/$slug"
+                params={{ slug: surprise.slug }}
+                className="self-center text-[12px] font-semibold text-caramel hover:underline"
+              >
+                See the recipe
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <Button size="sm" className="mt-2 rounded-full" onClick={pickSomethingNew}>
+            <Sparkles className="mr-1.5 size-4" /> Surprise me
+          </Button>
+        )}
+      </Card>
+
+      <div className="relative mt-3">
         <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={q}
@@ -139,6 +182,15 @@ function Discover() {
           className="rounded-full pl-9"
         />
       </div>
+      {cuisines.length > 1 ? (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {cuisines.map((c) => (
+            <Chip key={c} active={cuisine === c} onClick={() => setCuisine(cuisine === c ? null : c)}>
+              {c}
+            </Chip>
+          ))}
+        </div>
+      ) : null}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {FILTERS.map((f) => (
           <Chip key={f} active={filter === f} onClick={() => setFilter(f)}>
