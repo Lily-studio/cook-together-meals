@@ -130,7 +130,7 @@ function Discover() {
 
   return (
     <AppShell title="Discover" subtitle="Warm, affordable, Moroccan-friendly">
-      <LilySays mood="happy">
+      <LilySays mood="excited">
         Fancy something different? I'll find a meal from a kitchen you haven't cooked from lately — still inside
         your goals, your dislikes and your budget.
       </LilySays>
