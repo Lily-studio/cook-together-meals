@@ -300,6 +300,50 @@ export type Database = {
           },
         ]
       }
+      lily_action_log: {
+        Row: {
+          created_at: string
+          household_id: string
+          id: string
+          kind: string
+          payload: Json
+          profile_id: string
+          summary: string
+          undo: Json
+          undone: boolean
+        }
+        Insert: {
+          created_at?: string
+          household_id: string
+          id?: string
+          kind: string
+          payload?: Json
+          profile_id: string
+          summary?: string
+          undo?: Json
+          undone?: boolean
+        }
+        Update: {
+          created_at?: string
+          household_id?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          profile_id?: string
+          summary?: string
+          undo?: Json
+          undone?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lily_action_log_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_feedback: {
         Row: {
           created_at: string
