@@ -1,14 +1,16 @@
 import { useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight, Check, Send } from "lucide-react";
+import { ArrowRight, Check, FileText, Paperclip, Send, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app-shell";
 import { useApp } from "@/components/app-context";
 import { LilyAvatar } from "@/components/lily";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { lilyCommand, type LilyAction } from "@/lib/lily-agent.functions";
+import { lilyCommand, type LilyAction, type LilyAttachment } from "@/lib/lily-agent.functions";
+import { SERVER_KINDS, runLilyServerActions, type ServerAction } from "@/lib/lily-exec.functions";
 import { confirmQuestion, isDestructive, useLilyActions } from "@/lib/lily-actions";
 import { thisWeekStart, useGrocery, useLogs, usePlan, usePrepBatches } from "@/lib/db";
 import { usePantry } from "@/lib/pantry";
@@ -52,7 +54,47 @@ type Bubble = {
   done?: string[] | undefined;
   link?: { to: string; label: string } | null | undefined;
   pending?: LilyAction[] | undefined;
+  files?: { name: string; preview?: string }[] | undefined;
+  failed?: string[] | undefined;
 };
+
+const MAX_FILE = 5 * 1024 * 1024;
+const TEXT_EXT = /\.(txt|md|csv|json|html?|xml|ya?ml|rtf)$/i;
+
+function readAs(file: File, how: "url" | "text") {
+  return new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(r.error);
+    if (how === "url") r.readAsDataURL(file);
+    else r.readAsText(file);
+  });
+}
+
+async function shrinkImage(file: File): Promise<string> {
+  const url = await readAs(file, "url");
+  const img = new Image();
+  await new Promise((res, rej) => {
+    img.onload = res;
+    img.onerror = rej;
+    img.src = url;
+  });
+  const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.85);
+}
+
+async function toAttachment(file: File): Promise<LilyAttachment> {
+  if (file.size > MAX_FILE) throw new Error(`${file.name} is over 5 MB`);
+  if (file.type.startsWith("image/"))
+    return { name: file.name, mime: "image/jpeg", kind: "image", data: await shrinkImage(file) };
+  if (file.type.startsWith("text/") || TEXT_EXT.test(file.name))
+    return { name: file.name, mime: file.type || "text/plain", kind: "text", data: await readAs(file, "text") };
+  return { name: file.name, mime: file.type || "application/octet-stream", kind: "file", data: await readAs(file, "url") };
+}
 
 function TalkToLily() {
   const { people, householdId, me } = useApp();
@@ -70,6 +112,10 @@ function TalkToLily() {
   const prep = usePrepBatches(householdId);
   const ask = useServerFn(lilyCommand);
   const { run } = useLilyActions();
+  const runServer = useServerFn(runLilyServerActions);
+  const qc = useQueryClient();
+  const [files, setFiles] = useState<LilyAttachment[]>([]);
+  const fileRef = useRef<HTMLInputElement>(null);
   const events = useEvents(householdId, today, isoDate(new Date(Date.now() + 14 * 86_400_000)));
   const notes = useHouseholdNotes(householdId);
   const feedback = useFeedback(householdId);
@@ -172,13 +218,27 @@ function TalkToLily() {
 
   const carryOut = async (actions: LilyAction[], index: number) => {
     try {
-      const result = await run(actions);
+      const isServer = (a: LilyAction) => (SERVER_KINDS as readonly string[]).includes(a.kind);
+      const serverActs = actions.filter(isServer) as unknown as ServerAction[];
+      const result = await run(actions.filter((a) => !isServer(a)));
+      const done = [...result.done];
+      const failed: string[] = [];
+      if (serverActs.length) {
+        const res = await runServer({ data: { actions: serverActs, confirmed: true } });
+        if (!res.needsConfirm) {
+          res.results.forEach((r) => (r.ok ? done : failed).push(r.message));
+          ["plan", "grocery", "pantry", "events", "notes", "feedback", "favorites", "prep", "logs"].forEach((k) =>
+            qc.invalidateQueries({ queryKey: [k] }),
+          );
+        }
+      }
       setTurns((prev) =>
         prev.map((t, i) =>
-          i === index ? { ...t, pending: undefined, done: result.done, link: result.navigate } : t,
+          i === index ? { ...t, pending: undefined, done, failed, link: result.navigate } : t,
         ),
       );
-      if (result.done.length) toast.success(result.done[0]!);
+      if (done.length) toast.success(done[0]!);
+      else if (failed.length) toast.error(failed[0]!);
     } catch {
       toast.error("I couldn't save that one — try again?");
       setTurns((prev) => prev.map((t, i) => (i === index ? { ...t, pending: undefined } : t)));
@@ -189,16 +249,30 @@ function TalkToLily() {
 
   const send = async (message: string) => {
     const trimmed = message.trim();
-    if (!trimmed || busy) return;
-    const history = [...turns, { role: "user" as const, content: trimmed }];
+    if ((!trimmed && !files.length) || busy) return;
+    const attached = files;
+    const content = trimmed || "Have a look at this.";
+    const history: Bubble[] = [
+      ...turns,
+      {
+        role: "user" as const,
+        content,
+        files: attached.map((f) => ({ name: f.name, preview: f.kind === "image" ? f.data : undefined })),
+      },
+    ];
     setTurns(history);
     setText("");
+    setFiles([]);
     setBusy(true);
     try {
       const res = await ask({
         data: {
           context,
-          messages: history.slice(-12).map((t) => ({ role: t.role, content: t.content })),
+          attachments: attached,
+          messages: history.slice(-12).map((t) => ({
+            role: t.role,
+            content: t.files?.length ? `${t.content}\n[attached: ${t.files.map((f) => f.name).join(", ")}]` : t.content,
+          })),
         },
       });
       if ("error" in res) {
@@ -239,6 +313,39 @@ function TalkToLily() {
               >
                 {t.content}
               </div>
+
+              {t.files?.length ? (
+                <div className="flex flex-wrap justify-end gap-1.5">
+                  {t.files.map((f, k) =>
+                    f.preview ? (
+                      <img key={k} src={f.preview} alt={f.name} className="size-20 rounded-xl object-cover shadow-soft" />
+                    ) : (
+                      <span key={k} className="flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-[11.5px]">
+                        <FileText className="size-3.5" /> {f.name}
+                      </span>
+                    ),
+                  )}
+                </div>
+              ) : null}
+
+              {t.failed?.length ? (
+                <ul className="grid gap-1 rounded-2xl bg-destructive/10 px-3 py-2 text-[12.5px] text-foreground/80">
+                  {t.failed.map((d, k) => (
+                    <li key={k}>{d}</li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {t.done?.length && t.role === "assistant" && i === turns.length - 1 ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 rounded-full px-2 text-[12px]"
+                  onClick={() => void send("Undo that last change")}
+                >
+                  <Undo2 className="mr-1 size-3.5" /> Undo
+                </Button>
+              ) : null}
 
               {t.done?.length ? (
                 <ul className="grid gap-1 rounded-2xl bg-olive/10 px-3 py-2 text-[12.5px] text-foreground/80">
@@ -312,6 +419,20 @@ function TalkToLily() {
         </Card>
       ) : null}
 
+      {files.length ? (
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {files.map((f, k) => (
+            <span key={k} className="flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[12px] shadow-soft">
+              {f.kind === "image" ? <img src={f.data} alt="" className="size-5 rounded object-cover" /> : <FileText className="size-3.5" />}
+              <span className="max-w-[140px] truncate">{f.name}</span>
+              <button type="button" aria-label={`Remove ${f.name}`} onClick={() => setFiles((p) => p.filter((_, j) => j !== k))}>
+                <X className="size-3.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      ) : null}
+
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -319,6 +440,35 @@ function TalkToLily() {
         }}
         className="sticky bottom-24 z-20 mt-4 flex gap-2 rounded-full bg-card/95 p-1.5 shadow-lift backdrop-blur lg:bottom-6"
       >
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          accept="image/*,.pdf,.txt,.md,.csv,.json,.doc,.docx,text/*"
+          className="hidden"
+          onChange={async (e) => {
+            const list = Array.from(e.target.files ?? []);
+            e.target.value = "";
+            for (const f of list) {
+              try {
+                const a = await toAttachment(f);
+                setFiles((p) => (p.length >= 4 ? p : [...p, a]));
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : `Couldn't read ${f.name}`);
+              }
+            }
+          }}
+        />
+        <Button
+          type="button"
+          size="icon"
+          variant="ghost"
+          aria-label="Attach a photo or file"
+          className="size-10 shrink-0 rounded-full"
+          onClick={() => fileRef.current?.click()}
+        >
+          <Paperclip className="size-4" />
+        </Button>
         <Input
           value={text}
           onChange={(e) => setText(e.target.value)}
