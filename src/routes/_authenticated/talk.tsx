@@ -54,7 +54,7 @@ type Bubble = {
   done?: string[] | undefined;
   link?: { to: string; label: string } | null | undefined;
   pending?: LilyAction[] | undefined;
-  files?: { name: string; preview?: string }[] | undefined;
+  files?: { name: string; preview?: string | undefined }[] | undefined;
   failed?: string[] | undefined;
 };
 
