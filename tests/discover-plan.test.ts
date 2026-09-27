@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { Profile, Recipe } from "./db";
-import { cleanValues, findCatalogRecipe, needsConfirmation, planRotation, planSpecific } from "./discover-plan";
+import type { Profile, Recipe } from "../src/lib/db";
+import { cleanValues, findCatalogRecipe, needsConfirmation, planRotation, planSpecific } from "../src/lib/discover-plan";
 
 const recipe = (over: Partial<Recipe>): Recipe => ({
   id: over.slug ?? "x",
