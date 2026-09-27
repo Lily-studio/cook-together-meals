@@ -20,7 +20,7 @@ import { methodLabel } from "./cooking-method";
 const db = supabase as unknown as { from: (table: string) => any };
 
 /** Changes big enough that Lily asks first. */
-export const DESTRUCTIVE: LilyAction["kind"][] = ["delete_month_plan", "regenerate_day"];
+export const DESTRUCTIVE: LilyAction["kind"][] = ["delete_month_plan", "regenerate_day", "rotate_discover", "record_delete"];
 
 export function isDestructive(actions: LilyAction[]) {
   return actions.some((a) => DESTRUCTIVE.includes(a.kind));
@@ -31,6 +31,9 @@ export function confirmQuestion(actions: LilyAction[]) {
     return "Are you sure? That removes your whole 28-day plan.";
   const day = actions.find((a) => a.kind === "regenerate_day");
   if (day && "date" in day) return `Shall I redo every meal on ${day.date}?`;
+  const rot = actions.find((a) => a.kind === "rotate_discover");
+  if (rot && "from" in rot) return `Shall I rotate Discover recipes through your meals from ${rot.from} to ${rot.to}? You can undo it after.`;
+  if (actions.some((a) => a.kind === "record_delete")) return "Shall I delete that? You can undo it after.";
   return "Shall I go ahead?";
 }
 

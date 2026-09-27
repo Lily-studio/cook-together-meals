@@ -235,7 +235,7 @@ export function cleanValues(table: RecordTable, values: Record<string, unknown>)
 }
 
 /** Which Lily action kinds need a "yes, do it" first. */
-export function needsConfirmation(action: { kind: string; to?: string; from?: string; slots?: string[] }) {
+export function needsConfirmation(action: { kind: string }) {
   if (action.kind === "record_delete" || action.kind === "rotate_discover") return true;
   return false;
 }
