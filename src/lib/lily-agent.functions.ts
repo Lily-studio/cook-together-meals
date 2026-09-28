@@ -20,14 +20,22 @@ const attachmentSchema = z.object({
 });
 export type LilyAttachment = z.infer<typeof attachmentSchema>;
 
+const pictureSchema = z.object({
+  n: z.number().int().min(1).max(20),
+  name: z.string().max(160),
+  url: z.string().url().max(2000),
+});
+export type LilyPicture = z.infer<typeof pictureSchema>;
+
 const inputSchema = z.object({
   context: z.string().max(9000),
   attachments: z.array(attachmentSchema).max(4).optional(),
+  pictures: z.array(pictureSchema).max(20).optional(),
   messages: z
     .array(
       z.object({
         role: z.enum(["user", "assistant"]),
-        content: z.string().min(1).max(2000),
+        content: z.string().min(1).max(4000),
       }),
     )
     .min(1)
@@ -61,7 +69,31 @@ export type LilyAction =
   | { kind: "record_create"; table: string; values: Record<string, string | number | boolean | null> }
   | { kind: "record_update"; table: string; id?: string; match?: string; values: Record<string, string | number | boolean | null> }
   | { kind: "record_delete"; table: string; id?: string; match?: string }
-  | { kind: "undo_last" };
+  | { kind: "undo_last" }
+  | { kind: "propose_recipes"; recipes: ProposedRecipe[] };
+
+export type ProposedRecipe = {
+  picture: number | null;
+  title: string;
+  tagline: string;
+  cuisine: string;
+  meal_types: string[];
+  emoji: string;
+  base_servings: number;
+  prep_minutes: number;
+  cook_minutes: number;
+  difficulty: string;
+  ingredients: { name: string; amount: string; category: string }[];
+  steps: string[];
+  equipment: string[];
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  tags: string[];
+  uncertain: string[];
+};
 
 export type LilyReply = { reply: string; actions: LilyAction[] } | { error: string };
 
@@ -100,6 +132,7 @@ Allowed actions (copy the shapes exactly):
 {"kind":"record_update","table":"prep_batches","match":"meatballs","values":{"portions_left":2}}
 {"kind":"record_delete","table":"household_events","match":"parents"}
 {"kind":"undo_last"}                                          "undo that", "put it back", "that was a mistake"
+{"kind":"propose_recipes","recipes":[{"picture":1,"title":"...","tagline":"...","cuisine":"Moroccan","meal_types":["lunch","dinner"],"emoji":"🍗","base_servings":2,"prep_minutes":10,"cook_minutes":25,"difficulty":"easy","ingredients":[{"name":"Chicken thighs","amount":"500 g","category":"Meat & fish"}],"steps":["..."],"equipment":["oven"],"calories":560,"protein":42,"carbs":45,"fat":20,"fiber":6,"tags":["high-protein","complete-meal"],"uncertain":["sauce looks like harissa yoghurt — guessed"]}]}   DRAFT original recipes inspired by pictures; the app shows them for approval and saves nothing until the person approves
 Record tables and columns: pantry_items(name,category,quantity,unit,low_threshold,staple,opened_on,expires_on) grocery_items(name,amount,category,checked,week_start) household_events(event_date,slot,kind,guests,note) household_notes(from_name,message,handled) prep_batches(title,portions_total,portions_left,prepared_on,best_before,note) favorites(recipe) food_logs(log_date,slot,description,calories,protein,carbs,fat) meal_feedback(plan_date,slot,rating,note) ingredient_prices(name,unit,pack_size,price,currency). "match" is a word from the row's name/title/message.
 
 Slots are exactly: breakfast, snack_am, lunch, snack_pm, dinner. Leave "slot" out of an event when it covers the whole day.
@@ -118,6 +151,8 @@ Rules:
 - Only use recipes that exist in the CATALOG for plan_recipe; the app checks allergies, avoids, targets and portions and will refuse unsuitable ones — say "I'll try" rather than promising.
 - The app confirms deletes and rotations with the person itself; still describe what will change.
 - ATTACHMENTS: when the person attaches images or files, look at them carefully and use them as context. Identify foods and ingredients, read recipes and documents, use photos as inspiration (suggest the closest CATALOG recipe). Only turn them into actions when asked (e.g. "add these to my pantry" → record_create or pantry_add per item).
+- PICTURES are numbered for the whole conversation (Picture 1, Picture 2 …). "the third picture" = Picture 3; "the second recipe" = the 2nd recipe in your most recent propose_recipes list.
+- When asked to analyse food pictures or turn them into recipes: in "reply", briefly name each meal, its style/cuisine and meal type, and what you're unsure of. If something important can't be seen (e.g. the protein, or whether it's fried), ask ONE short question before proposing. Otherwise return propose_recipes with ORIGINAL recipes (never copy a known recipe), one per picture unless told otherwise, with realistic grams, per-serving nutrition estimates, steps, times, equipment, and categories. meal_types from breakfast/lunch/dinner/snack. Lunch/dinner recipes must be complete meals (a protein + a base) and lunch needs chicken, turkey or minced meat. When the person corrects a proposal, send the full corrected propose_recipes list again. Never claim a recipe is saved — the person saves it with the button.
 - Answer questions about the plan, pantry or targets from the kitchen summary. If it isn't in there, say you don't know instead of guessing.`;
 
 export const lilyCommand = createServerFn({ method: "POST" })
@@ -136,6 +171,7 @@ export const lilyCommand = createServerFn({ method: "POST" })
       .join("\n");
 
     const attachments = data.attachments ?? [];
+    const pictures = data.pictures ?? [];
     const lastUser = data.messages.length - 1;
     const input = [
       {
@@ -151,6 +187,10 @@ export const lilyCommand = createServerFn({ method: "POST" })
         if (m.role === "assistant") return { role: "assistant", content: [{ type: "output_text", text: m.content }] };
         const parts: Record<string, unknown>[] = [{ type: "input_text", text: m.content }];
         if (i === lastUser) {
+          for (const p of pictures) {
+            parts.push({ type: "input_text", text: `Picture ${p.n} (${p.name}):` });
+            parts.push({ type: "input_image", image_url: p.url });
+          }
           for (const a of attachments) {
             if (a.kind === "image") parts.push({ type: "input_image", image_url: a.data });
             else if (a.kind === "text")
@@ -221,7 +261,7 @@ export const lilyCommand = createServerFn({ method: "POST" })
           ) as LilyAction[]).slice(0, 12)
         : [];
       return {
-        reply: (parsed.reply ?? "Done 🌼").slice(0, 1200),
+        reply: (parsed.reply ?? "Done 🌼").slice(0, 2000),
         actions,
       };
     } catch (e) {
