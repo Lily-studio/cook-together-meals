@@ -26,6 +26,9 @@ export type Recipe = {
   tags: string[];
   prep_friendly: boolean;
   lily_note: string;
+  household_id?: string | null;
+  image_url?: string | null;
+  equipment?: string[];
 };
 
 export type Profile = {
