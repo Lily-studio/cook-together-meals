@@ -344,6 +344,44 @@ export type Database = {
           },
         ]
       }
+      lily_conversations: {
+        Row: {
+          closed: boolean
+          created_at: string
+          household_id: string
+          id: string
+          profile_id: string
+          turns: Json
+          updated_at: string
+        }
+        Insert: {
+          closed?: boolean
+          created_at?: string
+          household_id: string
+          id?: string
+          profile_id: string
+          turns?: Json
+          updated_at?: string
+        }
+        Update: {
+          closed?: boolean
+          created_at?: string
+          household_id?: string
+          id?: string
+          profile_id?: string
+          turns?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lily_conversations_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_feedback: {
         Row: {
           created_at: string
@@ -667,12 +705,16 @@ export type Database = {
           carbs: number
           cook_minutes: number
           created_at: string
+          created_by: string | null
           cuisine: string
           difficulty: string
           emoji: string
+          equipment: string[]
           fat: number
           fiber: number
+          household_id: string | null
           id: string
+          image_url: string | null
           ingredients: Json
           lily_note: string
           meal_types: string[]
@@ -680,6 +722,7 @@ export type Database = {
           prep_minutes: number
           protein: number
           slug: string
+          source: string
           steps: Json
           tagline: string
           tags: string[]
@@ -691,12 +734,16 @@ export type Database = {
           carbs?: number
           cook_minutes?: number
           created_at?: string
+          created_by?: string | null
           cuisine?: string
           difficulty?: string
           emoji?: string
+          equipment?: string[]
           fat?: number
           fiber?: number
+          household_id?: string | null
           id?: string
+          image_url?: string | null
           ingredients?: Json
           lily_note?: string
           meal_types?: string[]
@@ -704,6 +751,7 @@ export type Database = {
           prep_minutes?: number
           protein?: number
           slug: string
+          source?: string
           steps?: Json
           tagline?: string
           tags?: string[]
@@ -715,12 +763,16 @@ export type Database = {
           carbs?: number
           cook_minutes?: number
           created_at?: string
+          created_by?: string | null
           cuisine?: string
           difficulty?: string
           emoji?: string
+          equipment?: string[]
           fat?: number
           fiber?: number
+          household_id?: string | null
           id?: string
+          image_url?: string | null
           ingredients?: Json
           lily_note?: string
           meal_types?: string[]
@@ -728,12 +780,21 @@ export type Database = {
           prep_minutes?: number
           protein?: number
           slug?: string
+          source?: string
           steps?: Json
           tagline?: string
           tags?: string[]
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recipes_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

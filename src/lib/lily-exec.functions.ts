@@ -305,7 +305,7 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
               break;
             }
             for (const op of [...(last.undo as UndoOp[])].reverse()) {
-              if (!(op.table in RECORD_TABLES)) continue;
+              if (!(op.table in RECORD_TABLES) && op.table !== "recipes") continue;
               if (op.op === "delete") {
                 const { error } = await sb.from(op.table).delete().in("id", op.ids).eq("household_id", householdId);
                 if (error) throw new Error(error.message);
@@ -329,4 +329,99 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
       }
     }
     return { needsConfirm: false, results };
+  });
+
+/* ---------- Personal Meal Book ---------- */
+
+const recipeSchema = z.object({
+  picturePath: z.string().max(300).nullable(),
+  title: z.string().min(2).max(120),
+  tagline: z.string().max(240).default(""),
+  cuisine: z.string().max(60).default("Home"),
+  meal_types: z.array(z.enum(["breakfast", "lunch", "dinner", "snack", "side"])).min(1).max(4),
+  emoji: z.string().max(8).default("🍽️"),
+  base_servings: z.number().int().min(1).max(12).default(2),
+  prep_minutes: z.number().int().min(0).max(600).default(10),
+  cook_minutes: z.number().int().min(0).max(900).default(20),
+  difficulty: z.string().max(20).default("easy"),
+  ingredients: z
+    .array(z.object({ name: z.string().min(1).max(120), amount: z.string().max(60), category: z.string().max(40).default("Other") }))
+    .min(1)
+    .max(40),
+  steps: z.array(z.string().min(1).max(600)).min(1).max(30),
+  equipment: z.array(z.string().max(40)).max(12).default([]),
+  calories: z.number().min(0).max(3000).default(0),
+  protein: z.number().min(0).max(300).default(0),
+  carbs: z.number().min(0).max(500).default(0),
+  fat: z.number().min(0).max(300).default(0),
+  fiber: z.number().min(0).max(100).default(0),
+  tags: z.array(z.string().max(40)).max(16).default([]),
+});
+
+const slugify = (s: string) =>
+  s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "recipe";
+
+export const saveMealBookRecipes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ recipes: z.array(recipeSchema).min(1).max(20) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase as unknown as { from: (t: string) => any; storage: any };
+    const userId = context.userId;
+    const { data: me, error: meErr } = await sb.from("profiles").select("household_id").eq("id", userId).single();
+    if (meErr || !me) throw new Error("No household found");
+    const householdId: string = me.household_id;
+
+    const rows = [];
+    for (const r of data.recipes) {
+      let image_url: string | null = null;
+      if (r.picturePath) {
+        if (!r.picturePath.startsWith(`${householdId}/`)) throw new Error("That picture isn't yours");
+        const { data: signed, error } = await sb.storage
+          .from("lily-images")
+          .createSignedUrl(r.picturePath, 60 * 60 * 24 * 365 * 10);
+        if (error) throw new Error(error.message);
+        image_url = signed.signedUrl;
+      }
+      const tags = new Set(r.tags.map((t) => t.toLowerCase().trim()).filter(Boolean));
+      tags.add("meal-book");
+      const isMain = r.meal_types.includes("lunch") || r.meal_types.includes("dinner");
+      if (isMain && r.calories >= 380 && r.protein >= 18) {
+        tags.add("complete-meal");
+        tags.add("main");
+      }
+      r.equipment.forEach((e) => tags.add(slugify(e)));
+      const { picturePath: _p, ...rest } = r;
+      rows.push({
+        ...rest,
+        calories: Math.round(r.calories),
+        protein: Math.round(r.protein),
+        carbs: Math.round(r.carbs),
+        fat: Math.round(r.fat),
+        fiber: Math.round(r.fiber),
+        tags: [...tags],
+        slug: `${slugify(r.title)}-${crypto.randomUUID().slice(0, 6)}`,
+        household_id: householdId,
+        created_by: userId,
+        image_url,
+        source: "lily-picture",
+        prep_friendly: false,
+        lily_note: "Your own recipe, inspired by your picture.",
+      });
+    }
+    const { data: saved, error } = await sb.from("recipes").insert(rows).select("id, slug, title");
+    if (error) throw new Error(error.message);
+    const list = (saved ?? []) as { id: string; slug: string; title: string }[];
+    if (list.length !== rows.length) throw new Error("Not every recipe saved");
+    const summary = `Saved ${list.length} recipe${list.length === 1 ? "" : "s"} to your Meal Book: ${list.map((x) => x.title).join(", ")}`;
+    await sb.from("lily_action_log").insert([
+      {
+        household_id: householdId,
+        profile_id: userId,
+        kind: "save_recipes",
+        summary,
+        payload: { ids: list.map((x) => x.id) },
+        undo: [{ table: "recipes", op: "delete", ids: list.map((x) => x.id) }],
+      },
+    ]);
+    return { saved: list, message: summary };
   });
