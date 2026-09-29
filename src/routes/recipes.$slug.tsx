@@ -49,6 +49,12 @@ function RecipePage() {
           <p className="mt-8 text-sm text-muted-foreground">That recipe isn't in Lily's book.</p>
         ) : (
           <>
+            {recipe.image_url ? (
+              <img src={recipe.image_url} alt={recipe.title} className="mt-5 aspect-[4/3] w-full rounded-3xl object-cover shadow-soft" />
+            ) : null}
+            {recipe.equipment?.length ? (
+              <p className="mt-3 text-[12.5px] text-muted-foreground">Equipment: {recipe.equipment.join(", ")}</p>
+            ) : null}
             <div className="mt-5 flex items-start gap-3">
               <span className="text-4xl" aria-hidden>
                 {recipe.emoji}

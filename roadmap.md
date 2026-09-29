@@ -1,9 +1,8 @@
 # Roadmap
-- [ ] Live-verify rotate_discover + record create/update/delete; success only after save
-- [ ] Security: revoke EXECUTE on SECURITY DEFINER fns; leaked-password protection
-- [ ] Undo button hides after undo; undo for newer actions
-- [ ] Up to 20 images per conversation; Lily proposes original recipes; approve → save to Discover with image
-- [ ] Personal Meal Book in Discover
-- [ ] Planner uses household recipes
-- [ ] Conversation + attachments persist until closed; "third picture" references
-- [ ] Live test all of the above
+- [x] Security: definer function moved out of reach; leaked-password protection on
+- [x] Undo button hides after undo; events and household messages now undoable; saved recipes undoable
+- [x] Up to 20 pictures per conversation; Lily drafts original recipes; approve → saved to Meal Book with photo (live-tested)
+- [x] Personal Meal Book in Discover; recipe page shows photo + equipment
+- [x] Planner uses household recipes (same recipe list, same rules)
+- [x] Conversation + pictures persist until "Close conversation" (live-tested after reload)
+- [ ] Live test: plan a Meal Book recipe, rotation, record add/edit/delete, Undo — BLOCKED: workspace AI credits ran out mid-test
