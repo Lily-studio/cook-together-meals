@@ -135,6 +135,8 @@ function Discover() {
         your goals, your dislikes and your budget.
       </LilySays>
 
+      <MealBook recipes={recipes.filter((r) => r.household_id)} />
+
       <Card className="mt-3 bg-butter/40">
         <div className="flex items-center gap-2">
           <Globe2 className="size-4 text-caramel" />
@@ -248,5 +250,46 @@ function Discover() {
         ) : null}
       </div>
     </AppShell>
+  );
+}
+
+function MealBook({ recipes }: { recipes: Recipe[] }) {
+  return (
+    <Card className="mt-3">
+      <p className="font-display text-[17px] font-semibold">📖 My Meal Book</p>
+      {recipes.length ? (
+        <>
+          <p className="mt-0.5 text-[12px] text-muted-foreground">
+            Your own recipes from your pictures — Lily plans them into your meals too.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2.5">
+            {recipes.map((r) => (
+              <Link
+                key={r.id}
+                to="/recipes/$slug"
+                params={{ slug: r.slug }}
+                className="overflow-hidden rounded-2xl bg-secondary/50 shadow-soft transition-transform hover:-translate-y-0.5"
+              >
+                {r.image_url ? (
+                  <img src={r.image_url} alt={r.title} className="aspect-[4/3] w-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="grid aspect-[4/3] place-items-center text-4xl">{r.emoji}</div>
+                )}
+                <div className="p-2">
+                  <p className="text-[13px] font-semibold leading-tight">{r.title}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {r.calories} kcal · {r.protein} g protein · {r.prep_minutes + r.cook_minutes} min
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p className="mt-1 text-[12.5px] text-muted-foreground">
+          Send Lily food pictures in Talk to Lily and she'll turn them into your own recipes here.
+        </p>
+      )}
+    </Card>
   );
 }
