@@ -417,7 +417,7 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
 /* ---------- Personal Meal Book ---------- */
 
 const recipeSchema = z.object({
-  picturePath: z.string().max(300).nullable(),
+  picturePath: z.string().max(300).nullable().default(null),
   title: z.string().min(2).max(120),
   tagline: z.string().max(240).default(""),
   cuisine: z.string().max(60).default("Home"),
@@ -443,6 +443,67 @@ const recipeSchema = z.object({
 
 const slugify = (s: string) =>
   s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "recipe";
+
+const recipeEditSchema = z.object({
+  title: z.string().min(2).max(120).optional(),
+  tagline: z.string().max(240).optional(),
+  cuisine: z.string().max(60).optional(),
+  emoji: z.string().max(8).optional(),
+  meal_types: z.array(z.enum(["breakfast", "lunch", "dinner", "snack", "side"])).min(1).max(4).optional(),
+  base_servings: z.number().int().min(1).max(12).optional(),
+  prep_minutes: z.number().int().min(0).max(600).optional(),
+  cook_minutes: z.number().int().min(0).max(900).optional(),
+  difficulty: z.string().max(20).optional(),
+  calories: z.number().min(0).max(3000).optional(),
+  protein: z.number().min(0).max(300).optional(),
+  carbs: z.number().min(0).max(500).optional(),
+  fat: z.number().min(0).max(300).optional(),
+  fiber: z.number().min(0).max(100).optional(),
+  tags: z.array(z.string().max(40)).max(16).optional(),
+  equipment: z.array(z.string().max(40)).max(12).optional(),
+  ingredients: z
+    .array(z.object({ name: z.string().min(1).max(120), amount: z.string().max(60), category: z.string().max(40).default("Other") }))
+    .min(1)
+    .max(40)
+    .optional(),
+  steps: z.array(z.string().min(1).max(600)).min(1).max(30).optional(),
+  replace_ingredient: z.object({ from: z.string().min(1).max(60), to: z.string().min(1).max(60) }).optional(),
+});
+
+function toRecipeRow(
+  r: z.infer<typeof recipeSchema>,
+  householdId: string,
+  userId: string,
+  image_url: string | null,
+  source: string,
+  lily_note: string,
+) {
+  const tags = new Set(r.tags.map((t) => t.toLowerCase().trim()).filter(Boolean));
+  tags.add("meal-book");
+  const isMain = r.meal_types.includes("lunch") || r.meal_types.includes("dinner");
+  if (isMain && r.calories >= 380 && r.protein >= 18) {
+    tags.add("complete-meal");
+    tags.add("main");
+  }
+  r.equipment.forEach((e) => tags.add(slugify(e)));
+  const { picturePath: _p, ...rest } = r;
+  return {
+    ...rest,
+    calories: Math.round(r.calories),
+    protein: Math.round(r.protein),
+    carbs: Math.round(r.carbs),
+    fat: Math.round(r.fat),
+    fiber: Math.round(r.fiber),
+    tags: [...tags],
+    slug: `${slugify(r.title)}-${crypto.randomUUID().slice(0, 6)}`,
+    household_id: householdId,
+    created_by: userId,
+    image_url,
+    source,
+    prep_friendly: false,
+    lily_note,
+  };
+}
 
 export const saveMealBookRecipes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

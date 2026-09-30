@@ -178,7 +178,7 @@ export function useRecipes() {
   return useQuery({
     queryKey: ["recipes"],
     queryFn: async (): Promise<Recipe[]> => {
-      const { data, error } = await db.from("recipes").select("*").order("title");
+      const { data, error } = await db.from("recipes").select("*").is("archived_at", null).order("title");
       if (error) throw error;
       return (data ?? []) as Recipe[];
     },

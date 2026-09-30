@@ -70,6 +70,9 @@ export type LilyAction =
   | { kind: "record_update"; table: string; id?: string; match?: string; values: Record<string, string | number | boolean | null> }
   | { kind: "record_delete"; table: string; id?: string; match?: string }
   | { kind: "undo_last" }
+  | { kind: "recipe_create"; recipe: Omit<ProposedRecipe, "picture" | "uncertain"> }
+  | { kind: "recipe_update"; recipe: string; changes: Record<string, unknown> }
+  | { kind: "recipe_delete"; recipe: string }
   | { kind: "propose_recipes"; recipes: ProposedRecipe[] };
 
 export type ProposedRecipe = {
@@ -131,6 +134,9 @@ Allowed actions (copy the shapes exactly):
 {"kind":"record_create","table":"pantry_items","values":{"name":"Eggs","quantity":12,"unit":"pc"}}
 {"kind":"record_update","table":"prep_batches","match":"meatballs","values":{"portions_left":2}}
 {"kind":"record_delete","table":"household_events","match":"parents"}
+{"kind":"recipe_create","recipe":{"title":"...","tagline":"...","cuisine":"Moroccan","meal_types":["dinner"],"emoji":"🍲","base_servings":2,"prep_minutes":10,"cook_minutes":25,"difficulty":"easy","ingredients":[{"name":"Turkey mince","amount":"400 g","category":"Meat & fish"}],"steps":["..."],"equipment":["pan"],"calories":550,"protein":40,"carbs":45,"fat":18,"fiber":6,"tags":["high-protein"]}}   save a complete new recipe straight into Discover when they ask you to create/add one (not from pictures)
+{"kind":"recipe_update","recipe":"<slug from CATALOG marked MINE>","changes":{"calories":520,"title":"...","replace_ingredient":{"from":"chicken","to":"turkey"},"equipment":["monsieur cuisine"],"steps":["..."],"ingredients":[{"name":"...","amount":"..."}]}}   only include fields that change
+{"kind":"recipe_delete","recipe":"<slug marked MINE>"}   the app asks for confirmation; cooked history is kept
 {"kind":"undo_last"}                                          "undo that", "put it back", "that was a mistake"
 {"kind":"propose_recipes","recipes":[{"picture":1,"title":"...","tagline":"...","cuisine":"Moroccan","meal_types":["lunch","dinner"],"emoji":"🍗","base_servings":2,"prep_minutes":10,"cook_minutes":25,"difficulty":"easy","ingredients":[{"name":"Chicken thighs","amount":"500 g","category":"Meat & fish"}],"steps":["..."],"equipment":["oven"],"calories":560,"protein":42,"carbs":45,"fat":20,"fiber":6,"tags":["high-protein","complete-meal"],"uncertain":["sauce looks like harissa yoghurt — guessed"]}]}   DRAFT original recipes inspired by pictures; the app shows them for approval and saves nothing until the person approves
 Record tables and columns: pantry_items(name,category,quantity,unit,low_threshold,staple,opened_on,expires_on) grocery_items(name,amount,category,checked,week_start) household_events(event_date,slot,kind,guests,note) household_notes(from_name,message,handled) prep_batches(title,portions_total,portions_left,prepared_on,best_before,note) favorites(recipe) food_logs(log_date,slot,description,calories,protein,carbs,fat) meal_feedback(plan_date,slot,rating,note) ingredient_prices(name,unit,pack_size,price,currency). "match" is a word from the row's name/title/message.
@@ -149,6 +155,7 @@ Rules:
 - "my parents are coming for dinner tonight" → set_guests (plus add_event only if they want it remembered as a plan).
 - Someone in the house passing on a message or a preference → household_note, and remember_avoid too only if it's lasting.
 - Only use recipes that exist in the CATALOG for plan_recipe; the app checks allergies, avoids, targets and portions and will refuse unsuitable ones — say "I'll try" rather than promising.
+- Only recipes marked MINE in the CATALOG can be edited or deleted. To change a shared recipe, recipe_create a personal copy with the changes. "Replace today's lunch with <recipe>" → plan_recipe for that one slot only.
 - The app confirms deletes and rotations with the person itself; still describe what will change.
 - ATTACHMENTS: when the person attaches images or files, look at them carefully and use them as context. Identify foods and ingredients, read recipes and documents, use photos as inspiration (suggest the closest CATALOG recipe). Only turn them into actions when asked (e.g. "add these to my pantry" → record_create or pantry_add per item).
 - PICTURES are numbered for the whole conversation (Picture 1, Picture 2 …). "the third picture" = Picture 3; "the second recipe" = the 2nd recipe in your most recent propose_recipes list.
@@ -165,9 +172,10 @@ export const lilyCommand = createServerFn({ method: "POST" })
     const sb = context.supabase as unknown as { from: (t: string) => any };
     const { data: recipes } = await sb
       .from("recipes")
-      .select("slug, title, meal_types, calories, protein, tags, cuisine");
-    const catalog = ((recipes ?? []) as { slug: string; title: string; meal_types: string[]; calories: number; protein: number; tags: string[]; cuisine: string }[])
-      .map((r) => `${r.slug} | ${r.title} | ${r.meal_types.join("/")} | ${r.calories} kcal ${r.protein} g protein | ${r.cuisine} | ${r.tags.slice(0, 5).join(",")}`)
+      .select("slug, title, meal_types, calories, protein, tags, cuisine, household_id")
+      .is("archived_at", null);
+    const catalog = ((recipes ?? []) as { slug: string; title: string; meal_types: string[]; calories: number; protein: number; tags: string[]; cuisine: string; household_id: string | null }[])
+      .map((r) => `${r.household_id ? "MINE " : ""}${r.slug} | ${r.title} | ${r.meal_types.join("/")} | ${r.calories} kcal ${r.protein} g protein | ${r.cuisine} | ${r.tags.slice(0, 5).join(",")}`)
       .join("\n");
 
     const attachments = data.attachments ?? [];
