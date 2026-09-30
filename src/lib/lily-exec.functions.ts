@@ -302,6 +302,77 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
             results.push({ kind: action.kind, ok: true, message: msg });
             break;
           }
+          case "recipe_create": {
+            const row = toRecipeRow(
+              { ...action.recipe, picturePath: null },
+              householdId,
+              userId,
+              null,
+              "lily",
+              "Your own recipe, written with Lily.",
+            );
+            const { data: saved, error } = await sb.from("recipes").insert([row]).select("*").single();
+            if (error || !saved) throw new Error(error?.message ?? "not saved");
+            const msg = `Added ${saved.title} to Discover (your Meal Book)`;
+            await log(action.kind, msg, { id: saved.id }, [{ table: "recipes", op: "delete", ids: [saved.id] }]);
+            results.push({ kind: action.kind, ok: true, message: msg });
+            break;
+          }
+          case "recipe_update": {
+            const found = findOwnRecipe(allRecipes, householdId, action.recipe);
+            if ("error" in found) {
+              results.push({ kind: action.kind, ok: false, message: `${found.error}.` });
+              break;
+            }
+            const before = found.recipe as unknown as Record<string, unknown>;
+            const changes = applyRecipeEdit(found.recipe, action.changes);
+            if (!Object.keys(changes).length) {
+              results.push({ kind: action.kind, ok: false, message: "Tell me what to change." });
+              break;
+            }
+            const { data: upd, error } = await sb
+              .from("recipes")
+              .update(changes)
+              .eq("id", found.recipe.id)
+              .eq("household_id", householdId)
+              .select("id, title");
+            if (error) throw new Error(error.message);
+            if (!upd?.length) throw new Error("recipe not updated");
+            const msg = `Updated ${upd[0].title} in Discover (${Object.keys(changes).join(", ")})`;
+            await log(action.kind, msg, action, [{ table: "recipes", op: "restore", rows: [before] }]);
+            results.push({ kind: action.kind, ok: true, message: msg });
+            break;
+          }
+          case "recipe_delete": {
+            const found = findOwnRecipe(allRecipes, householdId, action.recipe);
+            if ("error" in found) {
+              results.push({ kind: action.kind, ok: false, message: `${found.error}.` });
+              break;
+            }
+            const before = found.recipe as unknown as Record<string, unknown>;
+            const { data: del, error } = await sb
+              .from("recipes")
+              .update({ archived_at: new Date().toISOString() })
+              .eq("id", found.recipe.id)
+              .eq("household_id", householdId)
+              .select("id");
+            if (error) throw new Error(error.message);
+            if (!del?.length) throw new Error("recipe not deleted");
+            const today = new Date().toISOString().slice(0, 10);
+            const { count } = await sb
+              .from("meal_plan_entries")
+              .select("id", { count: "exact", head: true })
+              .eq("household_id", householdId)
+              .eq("recipe_id", found.recipe.id)
+              .eq("cooked", false)
+              .gte("plan_date", today);
+            const msg =
+              `Deleted ${found.recipe.title} from Discover — I won't plan it again` +
+              (count ? `. It's still on ${count} upcoming meal${count === 1 ? "" : "s"}; ask me to swap ${count === 1 ? "it" : "them"}` : "");
+            await log(action.kind, msg, action, [{ table: "recipes", op: "restore", rows: [before] }]);
+            results.push({ kind: action.kind, ok: true, message: msg });
+            break;
+          }
           case "undo_last": {
             const { data: last } = await sb
               .from("lily_action_log")
@@ -394,31 +465,7 @@ export const saveMealBookRecipes = createServerFn({ method: "POST" })
         if (error) throw new Error(error.message);
         image_url = signed.signedUrl;
       }
-      const tags = new Set(r.tags.map((t) => t.toLowerCase().trim()).filter(Boolean));
-      tags.add("meal-book");
-      const isMain = r.meal_types.includes("lunch") || r.meal_types.includes("dinner");
-      if (isMain && r.calories >= 380 && r.protein >= 18) {
-        tags.add("complete-meal");
-        tags.add("main");
-      }
-      r.equipment.forEach((e) => tags.add(slugify(e)));
-      const { picturePath: _p, ...rest } = r;
-      rows.push({
-        ...rest,
-        calories: Math.round(r.calories),
-        protein: Math.round(r.protein),
-        carbs: Math.round(r.carbs),
-        fat: Math.round(r.fat),
-        fiber: Math.round(r.fiber),
-        tags: [...tags],
-        slug: `${slugify(r.title)}-${crypto.randomUUID().slice(0, 6)}`,
-        household_id: householdId,
-        created_by: userId,
-        image_url,
-        source: "lily-picture",
-        prep_friendly: false,
-        lily_note: "Your own recipe, inspired by your picture.",
-      });
+      rows.push(toRecipeRow(r, householdId, userId, image_url, "lily-picture", "Your own recipe, inspired by your picture."));
     }
     const { data: saved, error } = await sb.from("recipes").insert(rows).select("id, slug, title");
     if (error) throw new Error(error.message);
