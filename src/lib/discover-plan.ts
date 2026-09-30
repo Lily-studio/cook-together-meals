@@ -236,6 +236,86 @@ export function cleanValues(table: RecordTable, values: Record<string, unknown>)
 
 /** Which Lily action kinds need a "yes, do it" first. */
 export function needsConfirmation(action: { kind: string }) {
-  if (action.kind === "record_delete" || action.kind === "rotate_discover") return true;
-  return false;
+  return ["record_delete", "rotate_discover", "recipe_delete"].includes(action.kind);
+}
+
+/* ---------- Discover recipe editing ---------- */
+
+type RecipeLike = Pick<Recipe, "id" | "slug" | "title"> & {
+  household_id?: string | null;
+  archived_at?: string | null;
+};
+
+/** Recipes the planner may pick: not deleted. */
+export function activeRecipes<T extends { archived_at?: string | null }>(recipes: T[]): T[] {
+  return recipes.filter((r) => !r.archived_at);
+}
+
+/** Find a recipe this household owns (and may edit or delete). */
+export function findOwnRecipe<T extends RecipeLike>(
+  recipes: T[],
+  householdId: string,
+  ref: string,
+): { recipe: T } | { error: string } {
+  const own = recipes.filter((r) => r.household_id === householdId && !r.archived_at);
+  const hit = findCatalogRecipe(own as unknown as Recipe[], ref) as unknown as T | null;
+  if (hit) return { recipe: hit };
+  const shared = findCatalogRecipe(activeRecipes(recipes) as unknown as Recipe[], ref) as unknown as T | null;
+  if (shared && shared.household_id !== householdId) {
+    return { error: `${shared.title} is one of Lily's shared recipes, not yours — I can make you your own copy instead` };
+  }
+  return { error: `I couldn't find "${ref}" in your recipes` };
+}
+
+export type RecipeEdit = {
+  title?: string;
+  tagline?: string;
+  cuisine?: string;
+  emoji?: string;
+  meal_types?: string[];
+  base_servings?: number;
+  prep_minutes?: number;
+  cook_minutes?: number;
+  difficulty?: string;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fiber?: number;
+  tags?: string[];
+  equipment?: string[];
+  ingredients?: { name: string; amount: string; category?: string }[];
+  steps?: string[];
+  replace_ingredient?: { from: string; to: string };
+};
+
+/** Turn an edit request into the exact column changes. Pure. */
+export function applyRecipeEdit(
+  recipe: Pick<Recipe, "ingredients" | "steps" | "tags"> & { equipment?: string[] },
+  edit: RecipeEdit,
+): Record<string, unknown> {
+  const { replace_ingredient, ...rest } = edit;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(rest)) if (v !== undefined) out[k] = v;
+  for (const k of ["calories", "protein", "carbs", "fat", "fiber"]) {
+    if (typeof out[k] === "number") out[k] = Math.max(0, Math.round(out[k] as number));
+  }
+  if (replace_ingredient) {
+    const re = new RegExp(replace_ingredient.from.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    const ings = ((out["ingredients"] as Recipe["ingredients"]) ?? recipe.ingredients).map((i) => ({
+      ...i,
+      name: i.name.replace(re, replace_ingredient.to),
+    }));
+    const steps = ((out["steps"] as string[]) ?? (recipe.steps as unknown as string[])).map((s) =>
+      typeof s === "string" ? s.replace(re, replace_ingredient.to) : s,
+    );
+    out["ingredients"] = ings;
+    out["steps"] = steps;
+  }
+  if (Array.isArray(out["equipment"])) {
+    const tags = new Set((out["tags"] as string[] | undefined) ?? recipe.tags);
+    (out["equipment"] as string[]).forEach((e) => tags.add(e.toLowerCase().trim()));
+    out["tags"] = [...tags];
+  }
+  return out;
 }

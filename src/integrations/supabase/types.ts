@@ -700,6 +700,7 @@ export type Database = {
       }
       recipes: {
         Row: {
+          archived_at: string | null
           base_servings: number
           calories: number
           carbs: number
@@ -729,6 +730,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          archived_at?: string | null
           base_servings?: number
           calories?: number
           carbs?: number
@@ -758,6 +760,7 @@ export type Database = {
           title: string
         }
         Update: {
+          archived_at?: string | null
           base_servings?: number
           calories?: number
           carbs?: number
