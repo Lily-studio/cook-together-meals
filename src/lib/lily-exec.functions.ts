@@ -4,8 +4,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Profile, Recipe } from "./db";
 import {
   RECORD_TABLES,
+  activeRecipes,
+  applyRecipeEdit,
   cleanValues,
   findCatalogRecipe,
+  findOwnRecipe,
   needsConfirmation,
   planRotation,
   planSpecific,
@@ -51,6 +54,9 @@ export const serverActionSchema = z.discriminatedUnion("kind", [
     match: z.string().max(120).optional(),
   }),
   z.object({ kind: z.literal("undo_last") }),
+  z.object({ kind: z.literal("recipe_create"), recipe: z.lazy(() => recipeSchema) }),
+  z.object({ kind: z.literal("recipe_update"), recipe: z.string().min(1).max(120), changes: z.lazy(() => recipeEditSchema) }),
+  z.object({ kind: z.literal("recipe_delete"), recipe: z.string().min(1).max(120) }),
 ]);
 
 export type ServerAction = z.infer<typeof serverActionSchema>;
@@ -61,6 +67,9 @@ export const SERVER_KINDS = [
   "record_update",
   "record_delete",
   "undo_last",
+  "recipe_create",
+  "recipe_update",
+  "recipe_delete",
 ] as const;
 
 type UndoOp = { table: string; op: "delete"; ids: string[] } | { table: string; op: "restore"; rows: Record<string, unknown>[] };
@@ -110,7 +119,9 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
       const question =
         a.kind === "rotate_discover"
           ? `That changes many meals between ${a.from} and ${a.to}. Shall I go ahead?`
-          : `That deletes something from your ${LABEL[(a as { table: RecordTable }).table]}. Shall I go ahead?`;
+          : a.kind === "recipe_delete"
+            ? `That deletes "${a.recipe}" from Discover, so I'll never plan it again. Meals you've already cooked keep it. Shall I go ahead?`
+            : `That deletes something from your ${LABEL[(a as { table: RecordTable }).table]}. Shall I go ahead?`;
       return { needsConfirm: true, question };
     }
 
@@ -121,7 +132,8 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
     const { data: peopleRows } = await sb.from("profiles").select("*").eq("household_id", householdId);
     const people = (peopleRows ?? []) as Profile[];
     const { data: recipeRows } = await sb.from("recipes").select("*");
-    const recipes = (recipeRows ?? []) as Recipe[];
+    const allRecipes = (recipeRows ?? []) as (Recipe & { archived_at?: string | null })[];
+    const recipes = activeRecipes(allRecipes);
 
     const log = async (kind: string, summary: string, payload: unknown, undo: UndoOp[]) => {
       const { error } = await sb
