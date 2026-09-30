@@ -159,7 +159,7 @@ export const lilyCommand = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data, context }): Promise<LilyReply> => {
-    const apiKey = process.env["LOVABLE_API_KEY"];
+    const apiKey = process.env["OPENAI_API_KEY"];
     if (!apiKey) return { error: "Lily's kitchen radio isn't connected yet." };
 
     const sb = context.supabase as unknown as { from: (t: string) => any };
@@ -203,27 +203,25 @@ export const lilyCommand = createServerFn({ method: "POST" })
     ];
 
     try {
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+      const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
-          "Lovable-API-Key": apiKey,
-          "X-Lovable-AIG-SDK": "fetch",
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "openai/gpt-6-astra",
+          model: "gpt-4.1-mini",
           input,
           stream: true,
           store: false,
-          reasoning: { effort: "low" },
           text: { format: { type: "json_object" } },
         }),
       });
 
       if (response.status === 429) return { error: "So many things at once! Give me a minute." };
-      if (response.status === 402)
-        return { error: "Lily's AI credits have run out — top them up in Settings → Plans & credits." };
-      if (response.status === 403) return { error: "Lily isn't allowed to think right now — check your workspace AI settings." };
+      if (response.status === 402 || (response.status === 429 && /quota/i.test(await response.clone().text())))
+        return { error: "Your OpenAI account is out of credit — add some at platform.openai.com → Billing." };
+      if (response.status === 403) return { error: "Your OpenAI key was refused — check it in the app secrets." };
       if (!response.ok || !response.body) {
         console.error("lily gateway", response.status, await response.text().catch(() => ""));
         return { error: "I couldn't think straight just now — try again?" };

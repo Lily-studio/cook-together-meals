@@ -23,15 +23,15 @@ export const showLily = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }): Promise<ShowLilyResult> => {
-    const apiKey = process.env["LOVABLE_API_KEY"];
+    const apiKey = process.env["OPENAI_API_KEY"];
     if (!apiKey) return { error: "Lily can't look at photos just yet — her kitchen camera isn't connected." };
 
     try {
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-3.7-flash",
+          model: "gpt-4.1-mini",
           messages: [
             {
               role: "system",
