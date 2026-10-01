@@ -20,7 +20,7 @@ import { methodLabel } from "./cooking-method";
 const db = supabase as unknown as { from: (table: string) => any };
 
 /** Changes big enough that Lily asks first. */
-export const DESTRUCTIVE: LilyAction["kind"][] = ["delete_month_plan", "regenerate_day", "rotate_discover", "record_delete"];
+export const DESTRUCTIVE: LilyAction["kind"][] = ["delete_month_plan", "regenerate_day", "rotate_discover", "record_delete", "recipe_delete"];
 
 export function isDestructive(actions: LilyAction[]) {
   return actions.some((a) => DESTRUCTIVE.includes(a.kind));

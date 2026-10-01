@@ -325,7 +325,7 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
               break;
             }
             const before = found.recipe as unknown as Record<string, unknown>;
-            const changes = applyRecipeEdit(found.recipe, action.changes);
+            const changes = applyRecipeEdit(found.recipe, action.changes as never);
             if (!Object.keys(changes).length) {
               results.push({ kind: action.kind, ok: false, message: "Tell me what to change." });
               break;

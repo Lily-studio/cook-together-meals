@@ -71,7 +71,7 @@ export type LilyAction =
   | { kind: "record_delete"; table: string; id?: string; match?: string }
   | { kind: "undo_last" }
   | { kind: "recipe_create"; recipe: Omit<ProposedRecipe, "picture" | "uncertain"> }
-  | { kind: "recipe_update"; recipe: string; changes: Record<string, unknown> }
+  | { kind: "recipe_update"; recipe: string; changes: Record<string, string | number | string[] | { from: string; to: string } | { name: string; amount: string }[]> }
   | { kind: "recipe_delete"; recipe: string }
   | { kind: "propose_recipes"; recipes: ProposedRecipe[] };
 

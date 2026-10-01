@@ -148,3 +148,41 @@ describe("records & confirmation", () => {
     expect(needsConfirmation({ kind: "plan_recipe" })).toBe(false);
   });
 });
+
+import { activeRecipes, applyRecipeEdit, findOwnRecipe, needsConfirmation as nc2 } from "../src/lib/discover-plan";
+
+describe("Discover recipe actions", () => {
+  const mine = { id: "m1", slug: "my-turkey-bowl", title: "My Chicken Bowl", household_id: "h1", archived_at: null };
+  const other = { id: "o1", slug: "their-bowl", title: "Their Bowl", household_id: "h2", archived_at: null };
+  const shared = { id: "s1", slug: "shared-tagine", title: "Shared Tagine", household_id: null, archived_at: null };
+  const gone = { id: "g1", slug: "gone", title: "Gone Dish", household_id: "h1", archived_at: "2026-01-01" };
+  const all = [mine, other, shared, gone];
+
+  test("finds own recipe to edit", () => {
+    expect(findOwnRecipe(all, "h1", "my chicken bowl")).toEqual({ recipe: mine });
+  });
+  test("refuses shared and other households' recipes", () => {
+    expect("error" in findOwnRecipe(all, "h1", "Shared Tagine")).toBe(true);
+    expect("error" in findOwnRecipe(all, "h1", "Their Bowl")).toBe(true);
+  });
+  test("deleted recipes leave planning and can't be edited", () => {
+    expect(activeRecipes(all).map((r) => r.id)).not.toContain("g1");
+    expect("error" in findOwnRecipe(all, "h1", "Gone Dish")).toBe(true);
+  });
+  test("replace chicken with turkey edits ingredients and steps", () => {
+    const out = applyRecipeEdit(
+      { ingredients: [{ name: "Chicken breast", amount: "300 g" }] as never, steps: ["Sear the chicken"] as never, tags: [] },
+      { replace_ingredient: { from: "chicken", to: "turkey" }, calories: 512.6 },
+    );
+    expect((out["ingredients"] as { name: string }[])[0]!.name).toBe("turkey breast");
+    expect(out["steps"]).toEqual(["Sear the turkey"]);
+    expect(out["calories"]).toBe(513);
+  });
+  test("equipment edit tags the recipe", () => {
+    const out = applyRecipeEdit({ ingredients: [], steps: [], tags: ["main"] } as never, { equipment: ["Monsieur Cuisine"] });
+    expect(out["tags"]).toEqual(["main", "monsieur cuisine"]);
+  });
+  test("recipe delete needs confirmation", () => {
+    expect(nc2({ kind: "recipe_delete" })).toBe(true);
+  });
+});
