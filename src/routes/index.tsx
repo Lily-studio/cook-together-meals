@@ -60,8 +60,8 @@ function Landing() {
         <div className="relative z-20 pt-8 lg:pt-0">
           <div className="landing-kicker inline-flex items-center gap-2 rounded-full border border-caramel/20 bg-card/70 px-4 py-2 shadow-soft backdrop-blur">
             <Sparkles className="size-3.5 text-caramel" />
-            <span className="text-[11px] font-semibold tracking-[0.16em] text-caramel uppercase">
-              Lily plans. You cook. 🌼
+            <span className="text-[11px] font-semibold text-caramel uppercase">
+              Lily plans. You cook.
             </span>
           </div>
 
@@ -119,7 +119,7 @@ function Landing() {
             />
             <div className="landing-photo-shade absolute inset-0" aria-hidden />
             <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-card/50 bg-card/75 p-4 shadow-lift backdrop-blur-md sm:inset-x-7 sm:bottom-7 sm:p-5">
-              <p className="text-[10px] font-bold tracking-[0.16em] text-caramel uppercase">Tonight, sorted</p>
+              <p className="text-[10px] font-bold text-caramel uppercase">Tonight, sorted</p>
               <p className="mt-1 font-display text-xl font-semibold sm:text-2xl">One beautiful meal, portioned for both.</p>
             </div>
           </div>
@@ -127,14 +127,14 @@ function Landing() {
           <div className="landing-float-card landing-float-top absolute -top-4 right-2 hidden items-center gap-3 rounded-2xl border border-card bg-card/90 p-3 shadow-float backdrop-blur sm:flex lg:-right-7 lg:top-20">
             <span className="grid size-10 place-items-center rounded-xl bg-butter/50 text-xl">🌼</span>
             <div>
-              <p className="text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">Lily has planned</p>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase">Lily has planned</p>
               <p className="text-sm font-semibold">Your whole week</p>
             </div>
           </div>
           <div className="landing-float-card landing-float-bottom absolute -bottom-5 left-3 hidden items-center gap-3 rounded-2xl border border-card bg-card/90 p-3 shadow-float backdrop-blur sm:flex lg:-left-8 lg:bottom-20">
             <span className="grid size-10 place-items-center rounded-xl bg-mint/25 text-xl">✓</span>
             <div>
-              <p className="text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">Same cooking</p>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase">Same cooking</p>
               <p className="text-sm font-semibold">Personal portions</p>
             </div>
           </div>
@@ -144,7 +144,7 @@ function Landing() {
       <section className="relative z-20 border-y border-border/60 bg-card/45 py-20 backdrop-blur-sm sm:py-24">
         <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10">
           <div className="max-w-2xl">
-            <p className="text-[11px] font-semibold tracking-[0.16em] text-caramel uppercase">Everything taken care of</p>
+            <p className="text-[11px] font-semibold text-caramel uppercase">Everything taken care of</p>
             <h2 className="mt-3 font-display text-4xl leading-tight font-semibold sm:text-5xl">
               A calmer way to cook together.
             </h2>

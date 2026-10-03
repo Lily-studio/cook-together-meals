@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep the public homepage’s premium dimensional presentation CSS-driven and isolated to the landing route so authenticated app behavior remains unchanged.
