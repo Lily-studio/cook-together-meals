@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
-import lily3dHome from "@/assets/lily-3d-home.jpg";
+import lily3dHome from "@/assets/lily-3d-home-refined.jpg";
 import lilyPlans from "@/assets/home-lily-plans.jpg";
 import shopWeekly from "@/assets/home-shop-weekly.jpg";
 import twoPortions from "@/assets/home-two-portions.jpg";
