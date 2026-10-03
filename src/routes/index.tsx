@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
+import categoryDiscover from "@/assets/category-discover.jpg";
+import categoryGrocery from "@/assets/category-grocery.jpg";
+import categoryMealBook from "@/assets/category-meal-book.jpg";
+import categoryMealPlanning from "@/assets/category-meal-planning.jpg";
+import categoryPreferences from "@/assets/category-preferences.jpg";
 import lily3dHome from "@/assets/lily-3d-home-refined.jpg";
-import lilyPlans from "@/assets/home-lily-plans.jpg";
-import shopWeekly from "@/assets/home-shop-weekly.jpg";
-import twoPortions from "@/assets/home-two-portions.jpg";
 import { useSession } from "@/lib/session";
 
 export const Route = createFileRoute("/")({
@@ -150,44 +152,62 @@ function Landing() {
             </h2>
           </div>
 
-          <ul className="mt-12 grid gap-5 md:grid-cols-3 md:gap-6 [perspective:1200px]">
+          <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-5 [perspective:1200px]">
             {[
               {
-                image: twoPortions,
-                title: "Two people, two targets",
-                body: "Different calories, different macros — same pot on the stove.",
-                alt: "Two coordinated Moroccan bowls in different portion sizes",
+                image: categoryMealPlanning,
+                title: "Meal Planning",
+                body: "Lily organizes your meals around real life, shared dishes and personal portions.",
+                alt: "A dimensional weekly meal planner with five Moroccan-inspired dishes",
+                className: "lg:col-span-2",
               },
               {
-                image: lilyPlans,
-                title: "Tell Lily what you ate",
-                body: "Describe your plate in plain words and get an instant calorie estimate.",
-                alt: "A tactile recipe planner and measuring spoon",
+                image: categoryDiscover,
+                title: "Recipes & Discover",
+                body: "Explore complete recipes and fresh ideas chosen to suit your kitchen.",
+                alt: "An open recipe book with a dimensional Moroccan dish",
+                className: "lg:col-span-2",
               },
               {
-                image: shopWeekly,
-                title: "Shop once a week",
-                body: "Your grocery list builds itself from the plan, sorted by aisle.",
-                alt: "A woven market basket filled with fresh produce",
+                image: categoryGrocery,
+                title: "Shopping & Grocery",
+                body: "See exactly what to buy, what is already at home and what can wait.",
+                alt: "A dimensional woven grocery basket filled with fresh ingredients",
+                className: "lg:col-span-2",
               },
-            ].map((feature, index) => (
-              <li key={feature.title} className="landing-feature group relative overflow-hidden rounded-[1.75rem] border border-border/70 bg-card shadow-soft">
-                <div className="aspect-[5/4] overflow-hidden bg-secondary">
+              {
+                image: categoryMealBook,
+                title: "Saved Meals & Meal Book",
+                body: "Keep favourite dishes and your own picture-inspired recipes together.",
+                alt: "A dimensional personal meal book with recipe cards and a finished dish",
+                className: "lg:col-span-3",
+              },
+              {
+                image: categoryPreferences,
+                title: "Preferences",
+                body: "One shared meal, adapted thoughtfully for every person at your table.",
+                alt: "A dimensional plate of neatly arranged food preferences",
+                className: "lg:col-span-3",
+              },
+            ].map((feature) => (
+              <li
+                key={feature.title}
+                className={`landing-feature group grid min-h-[13rem] grid-cols-[minmax(0,1fr)_7.75rem] overflow-hidden rounded-[1.5rem] border border-border/70 bg-card shadow-soft sm:min-h-[14rem] sm:grid-cols-1 ${feature.className}`}
+              >
+                <div className="landing-feature-copy flex min-w-0 flex-col justify-center p-5 sm:order-2 sm:p-6">
+                  <h3 className="font-display text-xl font-semibold leading-tight sm:text-[1.35rem]">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{feature.body}</p>
+                  <span className="mt-5 h-px w-10 bg-caramel/40" aria-hidden />
+                </div>
+                <div className="landing-feature-visual relative min-h-full overflow-hidden bg-secondary sm:order-1 sm:aspect-[16/9] sm:min-h-0">
                   <img
                     src={feature.image}
                     alt={feature.alt}
-                    width={768}
-                    height={768}
+                    width={816}
+                    height={816}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                   />
-                </div>
-                <div className="relative p-5 sm:p-6">
-                  <span className="absolute -top-5 right-5 grid size-10 place-items-center rounded-full border border-card bg-background font-display text-sm font-semibold text-caramel shadow-soft">
-                    0{index + 1}
-                  </span>
-                  <h3 className="font-display text-xl font-semibold">{feature.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{feature.body}</p>
                 </div>
               </li>
             ))}
