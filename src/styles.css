@@ -304,6 +304,7 @@
 }
 
 .landing-scene {
+  letter-spacing: 0;
   background-image:
     radial-gradient(circle at 88% 14%, color-mix(in oklab, var(--landing-blush) 38%, transparent) 0, transparent 24rem),
     radial-gradient(circle at 13% 76%, color-mix(in oklab, var(--mint) 16%, transparent) 0, transparent 22rem),
