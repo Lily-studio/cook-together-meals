@@ -41,7 +41,7 @@ function Landing() {
 
   return (
     <main className="landing-scene min-h-screen overflow-hidden bg-background">
-      <nav className="relative z-30 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10 lg:py-7">
+      <nav className="landing-nav relative z-30 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10 lg:py-6">
         <Link to="/" className="group inline-flex items-center gap-3" aria-label="Cook with Lily home">
           <span className="landing-brand-mark grid size-10 place-items-center rounded-[14px] font-display text-xl font-semibold italic text-caramel">
             L
@@ -58,8 +58,8 @@ function Landing() {
         </Link>
       </nav>
 
-      <section className="relative mx-auto grid min-h-[calc(100svh-84px)] w-full max-w-7xl items-center gap-10 px-5 pb-16 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:px-10 lg:pb-24">
-        <div className="relative z-20 pt-8 lg:pt-0">
+      <section className="landing-hero relative mx-auto grid w-full max-w-7xl items-center gap-11 px-5 pt-8 pb-16 sm:px-8 sm:pt-12 sm:pb-20 lg:min-h-[46rem] lg:grid-cols-[0.92fr_1.08fr] lg:gap-16 lg:px-10 lg:py-14 xl:min-h-[48rem]">
+        <div className="landing-hero-copy relative z-20">
           <div className="landing-kicker inline-flex items-center gap-2 rounded-full border border-caramel/20 bg-card/70 px-4 py-2 shadow-soft backdrop-blur">
             <Sparkles className="size-3.5 text-caramel" />
             <span className="text-[11px] font-semibold text-caramel uppercase">
@@ -67,19 +67,19 @@ function Landing() {
             </span>
           </div>
 
-          <h1 className="landing-title mt-7 max-w-xl font-display text-[clamp(3.25rem,8vw,6.75rem)] leading-[0.92] font-semibold">
+          <h1 className="landing-title mt-7 max-w-xl font-display text-[clamp(3.25rem,6vw,5.75rem)] leading-[0.94] font-semibold">
             One kitchen.
             <br />
             Two goals.
             <br />
             <span className="italic text-caramel">Zero fuss.</span>
           </h1>
-          <p className="mt-7 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">
+          <p className="landing-intro mt-7 max-w-lg text-base leading-7 text-muted-foreground sm:text-lg">
             Lily plans a week of warm, affordable Moroccan-friendly meals you cook once — then serves
             each of you the portion that fits your own goal.
           </p>
 
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+          <div className="landing-actions mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
               to="/auth"
               className="landing-primary-action group inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-caramel px-7 text-[15px] font-semibold text-caramel-foreground shadow-lift transition-transform hover:-translate-y-1 active:translate-y-0"
@@ -95,7 +95,7 @@ function Landing() {
             </Link>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted-foreground">
+          <div className="landing-proof mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted-foreground">
             {["Shared meals", "Personal portions", "Automatic shopping"].map((item) => (
               <span key={item} className="inline-flex items-center gap-2">
                 <span className="grid size-5 place-items-center rounded-full bg-mint/30 text-olive">
@@ -107,7 +107,7 @@ function Landing() {
           </div>
         </div>
 
-        <div className="landing-stage relative z-10 mx-auto w-full max-w-[650px] [perspective:1400px]">
+        <div className="landing-stage relative z-10 mx-auto w-full max-w-[620px] [perspective:1400px]">
           <div className="landing-orbit landing-orbit-one" aria-hidden />
           <div className="landing-orbit landing-orbit-two" aria-hidden />
           <div className="landing-hero-frame relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-card/80 bg-secondary shadow-hero sm:rounded-[2.5rem]">
@@ -143,9 +143,9 @@ function Landing() {
         </div>
       </section>
 
-      <section className="relative z-20 border-y border-border/60 bg-card/45 py-20 backdrop-blur-sm sm:py-24">
+      <section className="landing-categories relative z-20 border-y border-border/60 bg-card/45 py-18 backdrop-blur-sm sm:py-22 lg:py-24">
         <div className="mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10">
-          <div className="max-w-2xl">
+          <div className="landing-section-heading max-w-2xl">
             <p className="text-[11px] font-semibold text-caramel uppercase">Everything taken care of</p>
             <h2 className="mt-3 font-display text-4xl leading-tight font-semibold sm:text-5xl">
               A calmer way to cook together.
