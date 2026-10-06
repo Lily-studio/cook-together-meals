@@ -8,3 +8,4 @@
 - [ ] Live test: plan a Meal Book recipe, rotation, record add/edit/delete, Undo — BLOCKED: workspace AI credits ran out mid-test
 - [x] Lily creates, edits (incl. ingredient swaps, equipment) and deletes her own Discover recipes; deletes are confirmed, kept for cooked history, never planned again; undoable
 - [ ] Live test of Lily recipe create/edit/delete — BLOCKED: OpenAI account needs credit
+- [x] Phone or username + PIN sign-in; mobile More menu with all sections + Log out; back button; Discover/Settings in nav; full signed-in page sweep (phone + laptop, no errors)

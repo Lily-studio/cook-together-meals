@@ -1,16 +1,24 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowLeft,
+  BookOpen,
   CalendarDays,
   CalendarRange,
   Heart,
   Home,
+  LogOut,
+  Menu,
   MessagesSquare,
   Package,
+  Settings,
   ShoppingBasket,
   Sparkles,
   Users,
+  X,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { LilyAvatar, type LilyMood } from "@/components/lily";
 import { FloatingVeg } from "@/components/floating-veg";
 import { useApp } from "@/components/app-context";
@@ -29,7 +37,9 @@ type NavItem = {
     | "/prep"
     | "/kitchen"
     | "/household"
-    | "/talk";
+    | "/talk"
+    | "/discover"
+    | "/settings";
   label: string;
   icon?: typeof Home;
   lily?: boolean;
@@ -43,15 +53,90 @@ const NAV: NavItem[] = [
   { to: "/today", label: "Today", icon: Sparkles, group: "🍽️ Meals" },
   { to: "/week", label: "My Week", icon: CalendarDays, desktopOnly: true, group: "🍽️ Meals" },
   { to: "/month", label: "My Month", icon: CalendarRange, desktopOnly: true, group: "🍽️ Meals" },
+  { to: "/discover", label: "Discover & Meal Book", icon: BookOpen, desktopOnly: true, group: "📖 Recipes" },
+  { to: "/favorites", label: "Favourites", icon: Heart, desktopOnly: true, group: "📖 Recipes" },
   { to: "/grocery", label: "Groceries", icon: ShoppingBasket, group: "🛒 Groceries" },
   { to: "/kitchen", label: "My kitchen today", icon: Home, desktopOnly: true, group: "🏠 My kitchen" },
   { to: "/pantry", label: "My Stock", icon: Package, desktopOnly: true, group: "🏠 My kitchen" },
   { to: "/prep", label: "Prep ahead", icon: Sparkles, desktopOnly: true, group: "🏠 My kitchen" },
   { to: "/household", label: "My household", icon: Users, desktopOnly: true, group: "👨‍👩‍👧 Household" },
-  { to: "/favorites", label: "Favourites", icon: Heart, group: "❤️ Favourites" },
+  { to: "/settings", label: "Settings", icon: Settings, desktopOnly: true, group: "👨‍👩‍👧 Household" },
   { to: "/lily", label: "Lily", lily: true, group: "💬 Lily" },
   { to: "/talk", label: "Talk to Lily", icon: MessagesSquare, desktopOnly: true, group: "💬 Lily" },
 ];
+
+function MoreSheet({ pathname }: { pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const items = NAV.filter((i) => i.desktopOnly);
+  const active = items.some((i) => i.to === pathname);
+  useEffect(() => setOpen(false), [pathname]);
+  const signOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+  return (
+    <>
+      <button
+        type="button"
+        aria-label="More"
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
+        className={cn(
+          "flex min-w-15 flex-col items-center gap-1 py-1 text-[10px] font-medium transition-colors",
+          active || open ? "text-caramel" : "text-muted-foreground",
+        )}
+      >
+        <Menu className="size-5" />
+        More
+      </button>
+      {open ? (
+        <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true" aria-label="All sections">
+          <button
+            type="button"
+            aria-label="Close menu"
+            className="absolute inset-0 bg-foreground/30 backdrop-blur-[2px]"
+            onClick={() => setOpen(false)}
+          />
+          <div className="absolute inset-x-0 bottom-0 max-h-[80vh] overflow-y-auto rounded-t-[2rem] bg-card px-5 pt-3 pb-8 shadow-soft">
+            <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-border" />
+            <div className="mb-3 flex items-center justify-between">
+              <p className="font-display text-lg font-semibold">Everything in your kitchen</p>
+              <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="rounded-full p-2 text-muted-foreground">
+                <X className="size-5" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {items.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "flex min-h-14 items-center gap-2.5 rounded-2xl px-3 py-3 text-sm font-semibold",
+                    pathname === item.to ? "bg-butter/70 text-caramel" : "bg-secondary/60 text-foreground",
+                  )}
+                >
+                  {item.icon ? <item.icon className="size-4.5 shrink-0" /> : null}
+                  <span className="min-w-0 leading-tight">{item.label}</span>
+                </Link>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={signOut}
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-border py-3 text-sm font-semibold text-muted-foreground"
+            >
+              <LogOut className="size-4" /> Log out
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
 
 
 export function AppShell({
@@ -73,6 +158,7 @@ export function AppShell({
   const { me, loading } = useApp();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const router = useRouter();
 
   useEffect(() => {
     if (!loading && me && !me.onboarding_complete && pathname !== "/onboarding") {
@@ -132,6 +218,16 @@ export function AppShell({
 
       <div className="relative z-10 mx-auto w-full max-w-md min-w-0 px-5 lg:mx-0 lg:max-w-none lg:flex-1 lg:px-10">
         <header className="flex items-center gap-3 pt-7 pb-5">
+          {pathname !== "/home" ? (
+            <button
+              type="button"
+              aria-label="Go back"
+              onClick={() => (window.history.length > 1 ? router.history.back() : navigate({ to: "/home" }))}
+              className="-ml-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-card shadow-soft lg:hidden"
+            >
+              <ArrowLeft className="size-5" />
+            </button>
+          ) : null}
           <span className="lg:hidden">
             <LilyAvatar size={46} mood={mood} />
           </span>
@@ -180,6 +276,7 @@ export function AppShell({
               </Link>
             );
           })}
+          <MoreSheet pathname={pathname} />
         </div>
       </nav>
     </div>
