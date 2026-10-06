@@ -113,7 +113,7 @@ function AuthPage() {
                 role="tab"
                 aria-selected={method === m}
                 onClick={() => setMethod(m)}
-                className={`rounded-full py-2 text-[13px] font-semibold transition-colors ${method === m ? "bg-card text-foreground shadow-soft" : "text-muted-foreground"}`}
+                className={`rounded-full py-2 text-[13px] font-semibold transition-colors ${method === m ? "bg-primary text-primary-foreground shadow-soft" : "text-muted-foreground"}`}
               >
                 {m === "name" ? "Username" : "Phone number"}
               </button>
