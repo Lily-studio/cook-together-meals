@@ -158,6 +158,7 @@ export function AppShell({
   const { me, loading } = useApp();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const router = useRouter();
 
   useEffect(() => {
     if (!loading && me && !me.onboarding_complete && pathname !== "/onboarding") {
@@ -217,6 +218,16 @@ export function AppShell({
 
       <div className="relative z-10 mx-auto w-full max-w-md min-w-0 px-5 lg:mx-0 lg:max-w-none lg:flex-1 lg:px-10">
         <header className="flex items-center gap-3 pt-7 pb-5">
+          {pathname !== "/home" ? (
+            <button
+              type="button"
+              aria-label="Go back"
+              onClick={() => (window.history.length > 1 ? router.history.back() : navigate({ to: "/home" }))}
+              className="-ml-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-card shadow-soft lg:hidden"
+            >
+              <ArrowLeft className="size-5" />
+            </button>
+          ) : null}
           <span className="lg:hidden">
             <LilyAvatar size={46} mood={mood} />
           </span>
@@ -265,6 +276,7 @@ export function AppShell({
               </Link>
             );
           })}
+          <MoreSheet pathname={pathname} />
         </div>
       </nav>
     </div>
