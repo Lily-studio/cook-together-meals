@@ -517,3 +517,63 @@
     transform: translateY(-4px);
   }
 }
+
+/* Shared Lily assistant: isolated from the homepage presentation. */
+.lily-floating-dock {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 45;
+  display: grid;
+  justify-items: center;
+  width: 64px;
+  animation: landing-rise 500ms ease-out both;
+}
+.lily-floating-trigger {
+  position: relative;
+  width: 60px;
+  height: 64px;
+  padding: 0;
+  border: 2px solid var(--card);
+  border-radius: 24px;
+  background: var(--card);
+  box-shadow: var(--shadow-lift);
+  transition: transform 200ms ease;
+}
+.lily-floating-trigger:hover { background: var(--card); transform: translateY(-2px); }
+.lily-floating-character {
+  width: 100%; height: 100%; object-fit: cover; object-position: 39% 9%;
+  border-radius: 22px;
+  animation: lily-assistant-idle 7s ease-in-out infinite;
+}
+@keyframes lily-assistant-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+.lily-floating-caption { margin-top: 3px; font-size: 11px; font-weight: 700; color: var(--foreground); background: var(--card); padding: 1px 8px; border-radius: 12px; }
+.lily-suggestion-dot { position: absolute; top: 2px; right: 1px; width: 8px; height: 8px; border: 2px solid var(--card); border-radius: 50%; background: var(--olive); }
+.lily-floating-hint { position: absolute; right: 76px; bottom: 24px; width: max-content; max-width: 220px; padding: 10px 12px; background: var(--card); color: var(--foreground); font-size: 12px; border-radius: 8px; box-shadow: var(--shadow-soft); opacity: 0; pointer-events: none; transition: opacity 180ms ease; }
+.lily-floating-dock:hover .lily-floating-hint, .lily-floating-dock:focus-within .lily-floating-hint { opacity: 1; }
+.lily-panel-backdrop { position: fixed; inset: 0; z-index: 69; background: color-mix(in oklab, var(--foreground) 24%, transparent); backdrop-filter: blur(3px); }
+.lily-panel {
+  position: fixed; right: max(24px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 70; width: min(460px, calc(100% - 32px)); height: min(740px, calc(100dvh - 48px));
+  display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border);
+  border-radius: 24px; background: var(--background); box-shadow: var(--shadow-lift);
+  animation: landing-rise 220ms ease-out both;
+}
+.lily-panel[hidden] { display: none; }
+.lily-panel-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--card); }
+.lily-conversation-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; flex: 1; padding: 18px 16px max(16px, env(safe-area-inset-bottom)); }
+body:has(.lily-floating-dock) { padding-bottom: 90px; }
+body:has([role="dialog"]):not(:has(.lily-panel[role="dialog"])) .lily-floating-dock { visibility: hidden; }
+@media (max-width: 1023px) {
+  .lily-floating-dock { right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); width: 56px; }
+  .lily-floating-trigger { width: 52px; height: 56px; border-radius: 20px; }
+  .lily-floating-character { border-radius: 18px; }
+  .lily-floating-dock-app { bottom: calc(82px + env(safe-area-inset-bottom)); }
+  .lily-floating-dock-editing { visibility: hidden; }
+  .lily-panel { inset: max(12px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)); width: auto; height: auto; border-radius: 20px; }
+  .lily-floating-hint { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lily-floating-dock, .lily-floating-character, .lily-panel { animation: none; }
+  .lily-floating-trigger { transition: none; }
+}
