@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { AppDataProvider } from "@/components/app-context";
 import { SessionProvider } from "@/lib/session";
+import { FloatingLily } from "@/components/floating-lily";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -130,6 +131,7 @@ function RootComponent() {
         <AppDataProvider>
           {/* Required: nested routes render here. */}
           <Outlet />
+          <FloatingLily />
           <Toaster position="top-center" />
         </AppDataProvider>
       </SessionProvider>

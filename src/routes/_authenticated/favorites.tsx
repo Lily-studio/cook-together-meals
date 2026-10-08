@@ -10,6 +10,14 @@ import { portionsFor } from "@/lib/planner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/favorites")({
+  head: () => ({ meta: [
+    { title: "Favourite meals — Cook with Lily" },
+    { name: "description", content: "Keep your household's favourite recipes together and add them to your meal plan." },
+    { property: "og:title", content: "Favourite meals — Cook with Lily" },
+    { property: "og:description", content: "The meals your household keeps coming back to." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: Favorites,
 });
 

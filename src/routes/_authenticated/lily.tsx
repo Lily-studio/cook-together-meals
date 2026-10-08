@@ -37,6 +37,8 @@ export const Route = createFileRoute("/_authenticated/lily")({
         property: "og:description",
         content: "Your cosy little kitchen companion: logging, prep-ahead, recipes and gentle progress.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: LilyHub,

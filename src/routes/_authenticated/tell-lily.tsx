@@ -20,6 +20,14 @@ import { portionsFor } from "@/lib/planner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/tell-lily")({
+  head: () => ({ meta: [
+    { title: "Tell Lily what you ate — Cook with Lily" },
+    { name: "description", content: "Log meals with Lily and keep your daily food plan up to date." },
+    { property: "og:title", content: "Tell Lily what you ate — Cook with Lily" },
+    { property: "og:description", content: "A simple food log for your household's daily meals." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: TellLily,
 });
 
