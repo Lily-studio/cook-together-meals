@@ -24,6 +24,8 @@ export const Route = createFileRoute("/_authenticated/settings")({
       },
       { property: "og:title", content: "My details — Cook with Lily" },
       { property: "og:description", content: "Your goals and food preferences, editable any time." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: SettingsPage,

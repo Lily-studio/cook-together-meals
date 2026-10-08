@@ -1,7 +1,7 @@
 export function lilyPageContext(path: string) {
   if (path.startsWith("/recipes/")) return {
     context: `The cook is viewing recipe slug ${decodeURIComponent(path.slice(9))}. Resolve this recipe from the existing catalog before proposing changes.`,
-    suggestions: ["Want me to adjust this recipe?".replace("Want me to", "Can you"), "Add this recipe to dinner tomorrow"],
+    suggestions: ["Can you adjust this recipe?", "Add this recipe to dinner tomorrow"],
   };
   if (["/today", "/week", "/month"].includes(path)) return {
     context: "The cook is viewing their meal plan. Ask which date and meal if the intended slot is unclear; keep unrelated meals unchanged.",

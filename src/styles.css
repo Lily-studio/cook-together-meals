@@ -531,6 +531,7 @@
 }
 .lily-floating-trigger {
   position: relative;
+  overflow: hidden;
   width: 60px;
   height: 64px;
   padding: 0;
@@ -542,8 +543,7 @@
 }
 .lily-floating-trigger:hover { background: var(--card); transform: translateY(-2px); }
 .lily-floating-character {
-  width: 100%; height: 100%; object-fit: cover; object-position: 39% 9%;
-  border-radius: 22px;
+  position: absolute; width: 176px; height: 220px; max-width: none; left: -44px; top: -4px; object-fit: cover;
   animation: lily-assistant-idle 7s ease-in-out infinite;
 }
 @keyframes lily-assistant-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
@@ -567,7 +567,7 @@ body:has([role="dialog"]):not(:has(.lily-panel[role="dialog"])) .lily-floating-d
 @media (max-width: 1023px) {
   .lily-floating-dock { right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); width: 56px; }
   .lily-floating-trigger { width: 52px; height: 56px; border-radius: 20px; }
-  .lily-floating-character { border-radius: 18px; }
+  .lily-floating-character { width: 156px; height: 195px; left: -40px; top: -4px; }
   .lily-floating-dock-app { bottom: calc(82px + env(safe-area-inset-bottom)); }
   .lily-floating-dock-editing { visibility: hidden; }
   .lily-panel { inset: max(12px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)); width: auto; height: auto; border-radius: 20px; }

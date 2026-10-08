@@ -18,6 +18,14 @@ import {
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
+  head: () => ({ meta: [
+    { title: "Your kitchen preferences — Cook with Lily" },
+    { name: "description", content: "Set household goals and food preferences for Lily's shared meal plans." },
+    { property: "og:title", content: "Your kitchen preferences — Cook with Lily" },
+    { property: "og:description", content: "Personal portions and shared meals tailored to your household." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
+  ] }),
   component: Onboarding,
 });
 
