@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Add persistent floating Lily using the existing conversation, page-aware suggestions, and safe phone placement; verify opening, closing, and navigation continuity
+- [x] Add persistent floating Lily using the existing conversation, page-aware suggestions, and safe phone placement; verified authenticated opening, closing, draft continuity, retained history/photos, and no duplicate on Talk
 - [x] Security: definer function moved out of reach; leaked-password protection on
 - [x] Undo button hides after undo; events and household messages now undoable; saved recipes undoable
 - [x] Up to 20 pictures per conversation; Lily drafts original recipes; approve → saved to Meal Book with photo (live-tested)

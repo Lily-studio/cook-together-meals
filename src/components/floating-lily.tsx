@@ -15,10 +15,39 @@ export function FloatingLily() {
   const [started, setStarted] = useState(false);
   const [editing, setEditing] = useState(false);
   const [pageTitle, setPageTitle] = useState("");
+  const [lift, setLift] = useState(0);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const dedicated = !showFloatingLily(path);
   const suggestion = lilyPageContext(path).suggestions[0];
+
+  useEffect(() => {
+    let frame = 0;
+    const place = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (window.innerWidth >= 1024) { setLift(0); return; }
+        const obstacles = Array.from(document.querySelectorAll<HTMLElement>("button, a, input, textarea, select, .meal-card"))
+          .filter((el) => !el.closest(".lily-floating-dock, .lily-panel, .lily-dedicated-host, nav"))
+          .map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height);
+        const right = window.innerWidth - 12;
+        const bottom = window.innerHeight - (session ? 82 : 12);
+        for (let offset = 0; offset < Math.min(400, window.innerHeight - 180); offset += 8) {
+          const top = bottom - offset - 78;
+          if (!obstacles.some((r) => r.left < right + 4 && r.right > right - 60 && r.top < top + 82 && r.bottom > top - 4)) {
+            setLift(offset); return;
+          }
+        }
+        setLift(0);
+      });
+    };
+    place();
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    const observer = new MutationObserver(place);
+    observer.observe(document.querySelector("#root") ?? document.body, { childList: true, subtree: true });
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener("scroll", place, true); window.removeEventListener("resize", place); };
+  }, [path, session, open]);
 
   useEffect(() => {
     setPageTitle(document.querySelector("main h1, h1")?.textContent ?? "");
@@ -59,7 +88,7 @@ export function FloatingLily() {
   return (
     <>
       {!dedicated && !open ? (
-        <div className={`lily-floating-dock ${session ? "lily-floating-dock-app" : ""} ${editing ? "lily-floating-dock-editing" : ""}`}>
+        <div style={{ marginBottom: lift }} className={`lily-floating-dock ${session ? "lily-floating-dock-app" : ""} ${editing ? "lily-floating-dock-editing" : ""}`}>
           <Button ref={trigger} variant="ghost" className="lily-floating-trigger" aria-label="Talk to Lily" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setStarted(true); setOpen(true); }}>
             <img src={lily} alt="" className="lily-floating-character" />
             {suggestion ? <span className="lily-suggestion-dot" aria-hidden="true" /> : null}
