@@ -8,6 +8,7 @@ import categoryMealPlanning from "@/assets/category-meal-planning.jpg";
 import categoryPreferences from "@/assets/category-preferences.jpg";
 import lily3dHome from "@/assets/lily-3d-home-refined.jpg";
 import { useSession } from "@/lib/session";
+import { InstallAppButton } from "@/components/install-app";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -214,6 +215,9 @@ function Landing() {
           </ul>
         </div>
       </section>
+      <footer className="relative z-20 mx-auto flex max-w-7xl justify-center px-5 py-8">
+        <InstallAppButton />
+      </footer>
     </main>
   );
 }

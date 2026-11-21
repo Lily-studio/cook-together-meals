@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AppDataProvider } from "@/components/app-context";
 import { SessionProvider } from "@/lib/session";
 import { FloatingLily } from "@/components/floating-lily";
+import { InstallationProvider } from "@/components/install-app";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -90,10 +91,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#f7f1e3" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "Cook with Lily" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png", sizes: "180x180" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -129,10 +135,12 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         <AppDataProvider>
+          <InstallationProvider>
           {/* Required: nested routes render here. */}
           <Outlet />
           <FloatingLily />
           <Toaster position="top-center" />
+          </InstallationProvider>
         </AppDataProvider>
       </SessionProvider>
     </QueryClientProvider>

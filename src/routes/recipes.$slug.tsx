@@ -18,6 +18,8 @@ export const Route = createFileRoute("/recipes/$slug")({
       { name: "description", content: "A warm, affordable recipe with per-person portions from Lily." },
       { property: "og:title", content: "A recipe from Cook with Lily" },
       { property: "og:description", content: "Cook once, serve two portions that fit each goal." },
+      { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: RecipePage,

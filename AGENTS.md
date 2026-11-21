@@ -12,3 +12,4 @@
 - Keep the public homepage’s premium dimensional presentation CSS-driven and isolated to the landing route so authenticated app behavior remains unchanged.
 - Mount one persistent Lily conversation view in the root assistant host; the Talk route and floating panel reuse it so hiding or navigating never forks conversation state or cancels active actions.
 - Derive assistant page context in the browser and pass it through the existing authenticated Lily command; never create a second assistant endpoint or conversation store.
+- Use manifest-only home-screen installation with one root installation provider; do not add app-shell service workers or offline caches unless offline use is explicitly requested, to preserve fresh pages, sessions, and preview safety.

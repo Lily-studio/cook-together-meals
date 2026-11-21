@@ -1,4 +1,6 @@
 # Roadmap
+- [x] Add manifest-only home-screen installation, matching Lily icons and Android/iPhone help; Chrome reports zero manifest/installability errors, icon delivery and mobile help verified, HTTPS confirmed, 20 tests pass
+- [ ] Verify published Android/iPhone home-screen installation and signed-in Settings help — BLOCKED: needs next publish and physical phone checks; session mint unavailable during this pass
 - [x] Add persistent floating Lily using the existing conversation, page-aware suggestions, and safe phone placement; verified authenticated opening, closing, draft continuity, retained history/photos, and no duplicate on Talk
 - [x] Security: definer function moved out of reach; leaked-password protection on
 - [x] Undo button hides after undo; events and household messages now undoable; saved recipes undoable

@@ -13,6 +13,7 @@ import { useUpdateProfile, type Profile } from "@/lib/db";
 import { COOKING_METHODS, methodLabel } from "@/lib/cooking-method";
 import { ACTIVITY_LABELS, GOAL_LABELS, computeTargets, type Goal } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
+import { InstallAppButton } from "@/components/install-app";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -407,6 +408,9 @@ function SettingsPage() {
           <PersonEditor key={p.id} person={p} />
         ))}
       </div>
+
+      <SectionTitle>Lily on your phone</SectionTitle>
+      <InstallAppButton />
 
       <Button
         variant="secondary"

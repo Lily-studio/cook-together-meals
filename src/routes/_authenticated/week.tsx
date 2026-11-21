@@ -23,6 +23,8 @@ export const Route = createFileRoute("/_authenticated/week")({
         property: "og:description",
         content: "One kitchen, one meal, two goals — see your plan, his plan, and the shared version.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: WeekPage,

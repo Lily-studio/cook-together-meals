@@ -27,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/grocery")({
       },
       { property: "og:title", content: "Groceries — Cook with Lily" },
       { property: "og:description", content: "Affordable, local shopping sorted by aisle." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: GroceryPage,
