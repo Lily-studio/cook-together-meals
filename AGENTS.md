@@ -13,3 +13,5 @@
 - Mount one persistent Lily conversation view in the root assistant host; the Talk route and floating panel reuse it so hiding or navigating never forks conversation state or cancels active actions.
 - Derive assistant page context in the browser and pass it through the existing authenticated Lily command; never create a second assistant endpoint or conversation store.
 - Use manifest-only home-screen installation with one root installation provider; do not add app-shell service workers or offline caches unless offline use is explicitly requested, to preserve fresh pages, sessions, and preview safety.
+- Render Lily through one hierarchical cut-out character rig; reuse its independent neck, shoulder, hair and face layers across surfaces to keep identity and motion consistent.
+- Plate analysis uses the existing direct OpenAI secret server-side; confirmed scanner writes use existing food_logs with a stable request UUID and authenticated ownership, so diary totals remain one source of truth.

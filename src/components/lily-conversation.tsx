@@ -21,6 +21,9 @@ import { useEvents, useFeedback, useHouseholdNotes } from "@/lib/household";
 import { SLOT_LABELS, isoDate } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
 import { lilyPageContext } from "@/lib/lily-page-context";
+import { ScanPlate } from "@/components/scan-plate";
+import { diaryNeedsConfirmation } from "@/lib/plate";
+import { reactLily } from "@/components/lily-character";
 
 const SUGGESTIONS = [
   "From now on, no carrot sticks as snacks",
@@ -49,6 +52,7 @@ const db = supabase as unknown as { from: (t: string) => any; storage: any };
 
 /** Real-life actions that go through the logged (undoable) server path. */
 function toServerRecord(a: LilyAction): LilyAction {
+  if (a.kind === "log_food") return { kind: "record_create", table: "food_logs", values: { log_date: isoDate(new Date()), slot: a.slot ?? "snack_pm", description: a.description, calories: a.calories, protein: a.protein ?? 0, carbs: a.carbs ?? 0, fat: a.fat ?? 0 } };
   if (a.kind === "add_event")
     return {
       kind: "record_create",
@@ -442,7 +446,8 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
         toast.error(res.error);
         return;
       }
-      const needsConfirm = isDestructive(res.actions);
+      const needsConfirm = isDestructive(res.actions) || diaryNeedsConfirmation(res.actions);
+      reactLily(res.actions.some(a => a.kind === "propose_recipes") ? "excited" : "welcome");
       const proposal = res.actions.find((a) => a.kind === "propose_recipes");
       const proposals =
         proposal && "recipes" in proposal && Array.isArray(proposal.recipes)
@@ -450,7 +455,7 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
           : undefined;
       const bubble: Bubble = {
         role: "assistant",
-        content: needsConfirm ? `${res.reply}\n\n${confirmQuestion(res.actions)}` : res.reply,
+        content: needsConfirm ? `${res.reply}\n\n${diaryNeedsConfirmation(res.actions) ? "These nutrition values are estimates. Review them above, then confirm before I add anything to your food diary." : confirmQuestion(res.actions)}` : res.reply,
         pending: needsConfirm ? res.actions : undefined,
         proposals: proposals?.length ? proposals : undefined,
       };
@@ -467,6 +472,7 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
 
   const content = (
     <>
+      <details className="mb-4 border-b border-border pb-3"><summary className="cursor-pointer text-sm font-semibold">Scan My Plate</summary><ScanPlate /></details>
       <div className="grid gap-3">
         {turns.map((t, i) => (
           <div key={i} className={cn("flex items-start gap-2.5", t.role === "user" && "justify-end")}>

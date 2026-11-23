@@ -18,6 +18,8 @@ import { reassure, treatsFor } from "@/lib/lily-brain";
 import { SLOTS, SLOT_LABELS, isoDate } from "@/lib/nutrition";
 import { portionsFor } from "@/lib/planner";
 import { cn } from "@/lib/utils";
+import { ScanPlate } from "@/components/scan-plate";
+import { FoodDiary } from "@/components/food-diary";
 
 export const Route = createFileRoute("/_authenticated/tell-lily")({
   head: () => ({ meta: [
@@ -129,6 +131,8 @@ function TellLily() {
   return (
     <AppShell title="Tell Lily" subtitle="Describe your plate in plain words">
       <LilySays>Tell me what you ate and I'll do the maths — you can edit anything after.</LilySays>
+      <ScanPlate />
+      <FoodDiary logs={(logs.data ?? []).filter(l => l.profile_id === personId)} target={person?.calorie_target ?? 2000} />
 
       <Card className="mt-4">
         <Textarea

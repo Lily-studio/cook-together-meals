@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { showLily } from "@/lib/vision.functions";
 
 /** Shrinks a phone photo down to something small enough to send. */
-async function toDataUrl(file: File, max = 900): Promise<string> {
+export async function toDataUrl(file: File, max = 900): Promise<string> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
@@ -16,6 +16,7 @@ async function toDataUrl(file: File, max = 900): Promise<string> {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Couldn't read that photo");
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
   return canvas.toDataURL("image/jpeg", 0.8);
 }
 

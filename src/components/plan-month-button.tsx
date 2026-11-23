@@ -8,6 +8,7 @@ import { usePantry } from "@/lib/pantry";
 import { feedbackSplit, planRules, useEvents, useFeedback } from "@/lib/household";
 import { SLOTS, isoDate, startOfWeek } from "@/lib/nutrition";
 import { cn } from "@/lib/utils";
+import { reactLily } from "@/components/lily-character";
 
 /**
  * The one button that matters: Lily generates and saves four full weeks,
@@ -66,6 +67,7 @@ export function PlanMonthButton({
         guests: rules.guests,
       });
       const extras: string[] = [];
+      reactLily("excited");
       if (rules.skip.length) extras.push("your days out left free");
       if (Object.keys(rules.guests).length) extras.push("extra plates for your guests");
       toast.success(

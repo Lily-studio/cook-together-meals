@@ -229,6 +229,7 @@
   --shadow-float: 0 2px 2px oklch(1 0 0 / 70%) inset, 0 20px 48px -20px oklch(0.37 0.055 55 / 38%);
   --landing-blush: oklch(0.9 0.048 22);
   --landing-porcelain: oklch(0.987 0.012 82);
+  --lily-hair-shadow: oklch(0.30 0.065 45);
 }
 
 .dark {
@@ -542,6 +543,33 @@
   transition: transform 200ms ease;
 }
 .lily-floating-trigger:hover { background: var(--card); transform: translateY(-2px); }
+.lily-floating-articulated { width: 100%; height: 100%; transform: scale(1.25); transform-origin: 50% 12%; }
+.landing-lily-rig { position: absolute !important; width: 94%; height: 92%; left: 3%; top: 0; }
+.lily-rig { display: inline-block; position: relative; overflow: hidden; isolation: isolate; contain: layout paint; }
+.lily-rig img { width: 100%; height: 100%; object-fit: fill; max-width: none; pointer-events: none; }
+.lily-rig-torso { position: absolute; inset: 0; animation: lily-rig-breathe 5s ease-in-out infinite; transform-origin: 50% 95%; }
+.lily-rig-body { position: absolute; left: 17%; top: 48%; width: 66% !important; height: 50% !important; }
+.lily-rig-neck { position: absolute; left: 17%; top: 2%; width: 66%; height: 66%; transform-origin: 50% 70%; animation: lily-rig-nod 7s ease-in-out infinite; }
+.lily-rig-face { position: absolute; inset: 0; }
+.lily-rig-face-blink { opacity: 0; animation: lily-rig-blink 6s step-end infinite; }
+.lily-rig-face-think { opacity: 0; }
+.lily-rig-hair { position: absolute; inset: 0; transform-origin: 50% 20%; animation: lily-rig-hair 8s ease-in-out infinite; }
+.lily-rig-face-open { clip-path: ellipse(31% 37% at 49% 37%); }
+.lily-rig-arm-left { position: absolute; left: 8%; top: 52%; width: 29%; height: 45%; transform-origin: 65% 5%; animation: lily-rig-hand 8s ease-in-out infinite; }
+.lily-rig-arm-wave { position: absolute; right: 4%; top: 30%; width: 29%; height: 46%; transform-origin: 28% 92%; animation: lily-rig-wave 1.8s ease-in-out 2; }
+.lily-rig[data-mood="thinking"] .lily-rig-face-think, .lily-rig[data-mood="surprised"] .lily-rig-face-think { opacity: 1; }
+.lily-rig[data-mood="thinking"] .lily-rig-face-blink { display: none; }
+.lily-rig[data-mood="thinking"] .lily-rig-neck { animation: lily-rig-thought 5s ease-in-out infinite; }
+.lily-rig[data-mood="excited"] .lily-rig-arm-wave, .lily-rig[data-mood="heart"] .lily-rig-arm-wave { animation: lily-rig-wave 1.6s ease-in-out 3; }
+.lily-rig[data-mood="heart"] .lily-rig-face-blink { opacity: 1; animation: none; }
+@keyframes lily-rig-breathe { 50% { transform: scaleY(1.012); } }
+@keyframes lily-rig-nod { 30% { transform: rotate(-1.5deg); } 65% { transform: rotate(1deg); } }
+@keyframes lily-rig-thought { 50% { transform: rotate(-4deg); } }
+@keyframes lily-rig-hair { 50% { transform: rotate(1.5deg); } }
+@keyframes lily-rig-hand { 50% { transform: rotate(-3deg); } }
+@keyframes lily-rig-wave { 25%, 75% { transform: rotate(9deg); } 50% { transform: rotate(-8deg); } }
+@keyframes lily-rig-blink { 0%, 93%, 100% { opacity: 0; } 94%, 96% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lily-rig * { animation: none !important; } }
 .lily-floating-character {
   position: absolute; width: 176px; height: 220px; max-width: none; left: -44px; top: -4px; object-fit: cover;
   animation: lily-assistant-idle 7s ease-in-out infinite;

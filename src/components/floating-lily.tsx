@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/lib/session";
 import { lilyPageContext, showFloatingLily } from "@/lib/lily-page-context";
-import lily from "@/assets/lily-3d-home-refined.jpg";
+import { LilyCharacter } from "@/components/lily-character";
 
 const LilyConversation = lazy(() => import("@/components/lily-conversation"));
 
@@ -90,7 +90,7 @@ export function FloatingLily() {
       {!dedicated && !open ? (
         <div style={{ marginBottom: lift }} className={`lily-floating-dock ${session ? "lily-floating-dock-app" : ""} ${editing ? "lily-floating-dock-editing" : ""}`}>
           <Button ref={trigger} variant="ghost" className="lily-floating-trigger" aria-label="Talk to Lily" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setStarted(true); setOpen(true); }}>
-            <img src={lily} alt="" className="lily-floating-character" />
+            <LilyCharacter className="lily-floating-articulated" mood="welcome" />
             {suggestion ? <span className="lily-suggestion-dot" aria-hidden="true" /> : null}
           </Button>
           <span className="lily-floating-caption">Lily</span>

@@ -1,4 +1,7 @@
 # Roadmap
+- [ ] Integrate one articulated illustrated Lily character across existing surfaces, with accessible state-driven animation
+- [ ] Add real photo plate analysis, editable nutrition/recipe review and confirmed writes to existing food logs and Meal Book
+- [ ] Test scanner calculations, duplicate prevention, animations and live authenticated flow before switching anything
 - [x] Add manifest-only home-screen installation, matching Lily icons and Android/iPhone help; Chrome reports zero manifest/installability errors, icon delivery and mobile help verified, HTTPS confirmed, 20 tests pass
 - [ ] Verify published Android/iPhone home-screen installation and signed-in Settings help — BLOCKED: needs next publish and physical phone checks; session mint unavailable during this pass
 - [x] Add persistent floating Lily using the existing conversation, page-aware suggestions, and safe phone placement; verified authenticated opening, closing, draft continuity, retained history/photos, and no duplicate on Talk
