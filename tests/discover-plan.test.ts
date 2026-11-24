@@ -147,6 +147,10 @@ describe("records & confirmation", () => {
     expect(needsConfirmation({ kind: "rotate_discover" })).toBe(true);
     expect(needsConfirmation({ kind: "plan_recipe" })).toBe(false);
   });
+  test("food diary creation requires confirmation on the server path", () => {
+    expect(needsConfirmation({ kind: "record_create", table: "food_logs" })).toBe(true);
+    expect(needsConfirmation({ kind: "record_create", table: "pantry_items" })).toBe(false);
+  });
 });
 
 import { activeRecipes, applyRecipeEdit, findOwnRecipe, needsConfirmation as nc2 } from "../src/lib/discover-plan";

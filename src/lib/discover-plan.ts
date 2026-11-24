@@ -235,8 +235,8 @@ export function cleanValues(table: RecordTable, values: Record<string, unknown>)
 }
 
 /** Which Lily action kinds need a "yes, do it" first. */
-export function needsConfirmation(action: { kind: string }) {
-  return ["record_delete", "rotate_discover", "recipe_delete"].includes(action.kind);
+export function needsConfirmation(action: { kind: string; table?: string }) {
+  return ["record_delete", "rotate_discover", "recipe_delete"].includes(action.kind) || (action.kind === "record_create" && action.table === "food_logs");
 }
 
 /* ---------- Discover recipe editing ---------- */

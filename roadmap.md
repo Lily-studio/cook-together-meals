@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Resume current work only, reconcile approved character references, fix errors and verify accessible features; do not publish
 - [ ] Integrate one articulated illustrated Lily character across existing surfaces, with accessible state-driven animation
 - [ ] Add real photo plate analysis, editable nutrition/recipe review and confirmed writes to existing food logs and Meal Book
 - [ ] Test scanner calculations, duplicate prevention, animations and live authenticated flow before switching anything

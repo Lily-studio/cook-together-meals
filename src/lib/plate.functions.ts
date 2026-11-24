@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { plateSchema } from "./plate";
+import { diaryRequestSchema, diaryValuesSchema, persistConfirmedDiary, plateSchema } from "./plate";
 
 const photo = z.string().regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/).max(6_000_000);
 export const analyzePlate = createServerFn({ method: "POST" })
@@ -33,34 +33,27 @@ export const analyzePlate = createServerFn({ method: "POST" })
     } catch { return { error: "The photo analysis could not finish. Nothing was saved." }; }
   });
 
-const diaryValues = z.object({
-  description: z.string().min(1).max(500), slot: z.enum(["breakfast", "lunch", "dinner", "snack_am", "snack_pm"]),
-  calories: z.number().finite().min(0).max(20000), protein: z.number().finite().min(0).max(2000),
-  carbs: z.number().finite().min(0).max(3000), fat: z.number().finite().min(0).max(2000),
-});
 export const savePlateDiary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), confirmed: z.literal(true), values: diaryValues }).parse(input))
+  .inputValidator((input: unknown) => diaryRequestSchema.parse(input))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as unknown as { from: (table: string) => any };
     const { data: me, error } = await sb.from("profiles").select("household_id").eq("id", context.userId).single();
     if (error || !me) throw new Error("Your account is unavailable. Nothing was saved.");
-    const { data: existing, error: readError } = await sb.from("food_logs").select("id,profile_id").eq("id", data.id).maybeSingle();
-    if (readError) throw new Error(readError.message);
-    if (existing) {
-      if (existing.profile_id !== context.userId) throw new Error("This diary entry isn't yours.");
-      return { id: existing.id, alreadySaved: true };
-    }
-    const { data: saved, error: writeError } = await sb.from("food_logs").upsert({
-      id: data.id, ...data.values, household_id: me.household_id, profile_id: context.userId,
-      log_date: new Date().toISOString().slice(0, 10), source: "plate_scan",
-    }, { onConflict: "id", ignoreDuplicates: true }).select("id");
-    if (writeError) throw new Error(writeError.message);
-    return { id: data.id, alreadySaved: !saved?.length };
+    return persistConfirmedDiary({
+      find: async id => { const result = await sb.from("food_logs").select("id,profile_id").eq("id", id).maybeSingle(); if (result.error) throw new Error(result.error.message); return result.data; },
+      insertOnce: async row => {
+        const { data: saved, error: writeError } = await sb.from("food_logs").upsert(row, { onConflict: "id", ignoreDuplicates: true }).select("id");
+        if (writeError) throw new Error(writeError.message);
+        if (!saved?.length) return false;
+        await sb.from("lily_action_log").insert({ household_id: me.household_id, profile_id: context.userId, kind: "plate_diary", summary: `Added ${row.description} to your food diary`, payload: { id: row.id }, undo: [{ table: "food_logs", op: "delete", ids: [row.id] }] });
+        return true;
+      },
+    }, data, { userId: context.userId, householdId: me.household_id }, new Date().toISOString().slice(0, 10));
   });
 export const editPlateDiary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), values: diaryValues.nullable(), confirmed: z.literal(true) }).parse(input))
+  .inputValidator((input: unknown) => z.object({ id: z.string().uuid(), values: diaryValuesSchema.nullable(), confirmed: z.literal(true) }).parse(input))
   .handler(async ({ data, context }) => {
     const sb = context.supabase as unknown as { from: (table: string) => any };
     const query = data.values ? sb.from("food_logs").update(data.values) : sb.from("food_logs").delete();

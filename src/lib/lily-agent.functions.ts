@@ -66,7 +66,7 @@ export type LilyAction =
   | { kind: "delete_month_plan" }
   | { kind: "plan_recipe"; recipe: string; date: string; slot: string }
   | { kind: "rotate_discover"; from: string; to: string; slots?: string[]; only_empty?: boolean; tag?: string | null }
-  | { kind: "record_create"; table: string; values: Record<string, string | number | boolean | null> }
+  | { kind: "record_create"; table: string; values: Record<string, string | number | boolean | null>; requestId?: string }
   | { kind: "record_update"; table: string; id?: string; match?: string; values: Record<string, string | number | boolean | null> }
   | { kind: "record_delete"; table: string; id?: string; match?: string }
   | { kind: "undo_last" }
@@ -104,7 +104,7 @@ const SYSTEM = `You are Lily: the warm Moroccan-Mediterranean cooking companion 
 You are not only a chatbot — you can actually change the app. Reply with JSON only:
 {"reply": string, "actions": Action[]}
 
-"reply" is your own warm voice, max 70 words (up to 220 when describing pictures), no markdown, no lists of technical detail. Confirm plainly what you just changed.
+"reply" is your own warm voice, max 70 words (up to 220 when describing pictures), no markdown, no lists of technical detail. Describe proposed changes; never claim a save before the executor succeeds. For a photo food log, show the food name, portion, calories, protein, carbs and fat, explain hidden-ingredient uncertainty, and ask for corrections. The app requires confirmation before adding any food to the diary.
 "actions" is what the app must really do. Use [] when the person only asked a question.
 
 Allowed actions (copy the shapes exactly):

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Profile, Recipe } from "./db";
+import { diaryValuesSchema } from "./plate";
 import {
   RECORD_TABLES,
   activeRecipes,
@@ -39,7 +40,7 @@ export const serverActionSchema = z.discriminatedUnion("kind", [
     only_empty: z.boolean().optional(),
     tag: z.string().max(40).nullable().optional(),
   }),
-  z.object({ kind: z.literal("record_create"), table, values }),
+  z.object({ kind: z.literal("record_create"), table, values, requestId: z.string().uuid().optional() }),
   z.object({
     kind: z.literal("record_update"),
     table,
@@ -115,13 +116,16 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
     const userId = context.userId;
 
     if (!data.confirmed && data.actions.some((a) => needsConfirmation(a))) {
-      const a = data.actions.find((x) => needsConfirmation(x))!;
+      const a = data.actions.find((x) => needsConfirmation(x));
+      if (!a) throw new Error("No action to confirm");
       const question =
         a.kind === "rotate_discover"
           ? `That changes many meals between ${a.from} and ${a.to}. Shall I go ahead?`
           : a.kind === "recipe_delete"
             ? `That deletes "${a.recipe}" from Discover, so I'll never plan it again. Meals you've already cooked keep it. Shall I go ahead?`
-            : `That deletes something from your ${LABEL[(a as { table: RecordTable }).table]}. Shall I go ahead?`;
+            : a.kind === "record_create" && a.table === "food_logs"
+              ? "Review the estimated calories and macros, then confirm before I add this to your food diary."
+              : `That deletes something from your ${LABEL[(a as { table: RecordTable }).table]}. Shall I go ahead?`;
       return { needsConfirm: true, question };
     }
 
@@ -248,6 +252,18 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
           }
           case "record_create": {
             const clean = cleanValues(action.table, action.values);
+            if (action.table === "food_logs") {
+              Object.assign(clean, diaryValuesSchema.parse({ ...clean, slot: clean["slot"] ?? "snack_pm", protein: clean["protein"] ?? 0, carbs: clean["carbs"] ?? 0, fat: clean["fat"] ?? 0 }));
+              if (!action.requestId) throw new Error("Please review this food entry again before saving.");
+              const previous = await sb.from("food_logs").select("id,profile_id").eq("id", action.requestId).maybeSingle();
+              if (previous.error) throw new Error(previous.error.message);
+              if (previous.data) {
+                if (previous.data.profile_id !== userId) throw new Error("This food entry isn't yours.");
+                results.push({ kind: action.kind, ok: true, message: "That food entry was already saved; no duplicate was added." });
+                break;
+              }
+              clean["id"] = action.requestId;
+            }
             if (action.table === "favorites" && typeof action.values["recipe"] === "string") {
               const r = findCatalogRecipe(recipes, action.values["recipe"] as string);
               if (r) clean["recipe_id"] = r.id;
@@ -273,6 +289,7 @@ export const runLilyServerActions = createServerFn({ method: "POST" })
               break;
             }
             const clean = cleanValues(action.table, action.values);
+            if (action.table === "food_logs") Object.assign(clean, diaryValuesSchema.parse({ ...found.row, ...clean }));
             if (!Object.keys(clean).length) throw new Error("Nothing valid to change");
             const { error } = await sb
               .from(action.table)

@@ -143,6 +143,9 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
   const [convoId, setConvoId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [uploading, setUploading] = useState(0);
+  const executing = useRef(new Set<number>());
+  const [activeExecutions, setActiveExecutions] = useState<number[]>([]);
+  const requestIds = useRef(new Map<string, string>());
   const saveRecipes = useServerFn(saveMealBookRecipes);
   const { userId } = useApp();
 
@@ -361,7 +364,16 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
   };
 
   const carryOut = async (raw: LilyAction[], index: number) => {
-    const actions = raw.filter((a) => a.kind !== "propose_recipes").map(toServerRecord);
+    if (executing.current.has(index)) return;
+    executing.current.add(index);
+    setActiveExecutions(prev => [...prev, index]);
+    const actions = raw.filter((a) => a.kind !== "propose_recipes").map(toServerRecord).map((a, k) => {
+      if (a.kind !== "record_create" || a.table !== "food_logs") return a;
+      const key = `${convoId ?? "new"}:${index}:${k}`;
+      const requestId = a.requestId ?? requestIds.current.get(key) ?? crypto.randomUUID();
+      requestIds.current.set(key, requestId);
+      return { ...a, requestId };
+    });
     try {
       const isServer = (a: LilyAction) => (SERVER_KINDS as readonly string[]).includes(a.kind);
       const serverActs = actions.filter(isServer) as unknown as ServerAction[];
@@ -400,6 +412,8 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
       toast.error("I couldn't save that one — try again?");
       setTurns((prev) => prev.map((t, i) => (i === index ? { ...t, pending: undefined } : t)));
     } finally {
+      executing.current.delete(index);
+      setActiveExecutions(prev => prev.filter(i => i !== index));
       scrollDown();
     }
   };
@@ -446,7 +460,8 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
         toast.error(res.error);
         return;
       }
-      const needsConfirm = isDestructive(res.actions) || diaryNeedsConfirmation(res.actions);
+      const preparedActions = res.actions.map(toServerRecord).map(a => a.kind === "record_create" && a.table === "food_logs" ? { ...a, requestId: crypto.randomUUID() } : a);
+      const needsConfirm = isDestructive(preparedActions) || diaryNeedsConfirmation(preparedActions);
       reactLily(res.actions.some(a => a.kind === "propose_recipes") ? "excited" : "welcome");
       const proposal = res.actions.find((a) => a.kind === "propose_recipes");
       const proposals =
@@ -456,7 +471,7 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
       const bubble: Bubble = {
         role: "assistant",
         content: needsConfirm ? `${res.reply}\n\n${diaryNeedsConfirmation(res.actions) ? "These nutrition values are estimates. Review them above, then confirm before I add anything to your food diary." : confirmQuestion(res.actions)}` : res.reply,
-        pending: needsConfirm ? res.actions : undefined,
+        pending: needsConfirm ? preparedActions : undefined,
         proposals: proposals?.length ? proposals : undefined,
       };
       const index = history.length;
@@ -599,8 +614,8 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
 
               {t.pending ? (
                 <div className="flex gap-2">
-                  <Button size="sm" className="rounded-full" onClick={() => void carryOut(t.pending ?? [], i)}>
-                    Yes, do it
+                  <Button size="sm" disabled={activeExecutions.includes(i)} className="rounded-full" onClick={() => void carryOut(t.pending ?? [], i)}>
+                    {activeExecutions.includes(i) ? "Saving…" : "Yes, do it"}
                   </Button>
                   <Button
                     size="sm"
