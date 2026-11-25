@@ -24,6 +24,7 @@ import { lilyPageContext } from "@/lib/lily-page-context";
 import { ScanPlate } from "@/components/scan-plate";
 import { diaryNeedsConfirmation } from "@/lib/plate";
 import { reactLily } from "@/components/lily-character";
+import { LilyReadAloud } from "@/components/lily-read-aloud";
 
 const SUGGESTIONS = [
   "From now on, no carrot sticks as snacks",
@@ -503,6 +504,7 @@ export default function LilyConversation({ embedded = false, pagePath = "/talk",
               >
                 {t.content}
               </div>
+              {t.role === "assistant" ? <LilyReadAloud text={t.content} /> : null}
 
               {t.files?.length ? (
                 <div className="flex flex-wrap justify-end gap-1.5">

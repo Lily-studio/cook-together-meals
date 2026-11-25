@@ -15,3 +15,4 @@
 - Use manifest-only home-screen installation with one root installation provider; do not add app-shell service workers or offline caches unless offline use is explicitly requested, to preserve fresh pages, sessions, and preview safety.
 - Render Lily through one hierarchical cut-out character rig; reuse its independent neck, shoulder, hair and face layers across surfaces to keep identity and motion consistent.
 - Plate analysis uses the existing direct OpenAI secret server-side; confirmed scanner writes use existing food_logs with a stable request UUID and authenticated ownership, so diary totals remain one source of truth.
+- Optional read-aloud uses device speech events to drive the existing character rig; never start speech automatically or introduce a paid voice provider.
