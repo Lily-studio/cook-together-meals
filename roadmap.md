@@ -1,8 +1,10 @@
 # Roadmap
-- [ ] Resume current work only, reconcile approved character references, fix errors and verify accessible features; do not publish
-- [ ] Integrate one articulated illustrated Lily character across existing surfaces, with accessible state-driven animation
-- [ ] Add real photo plate analysis, editable nutrition/recipe review and confirmed writes to existing food logs and Meal Book
-- [ ] Test scanner calculations, duplicate prevention, animations and live authenticated flow before switching anything
+- [x] Resume saved implementation without rebuilding or publishing; current build reports OK
+- [x] Reuse one reference-based illustrated cut-out Lily rig across surfaces; independent neck/arm/hair motion, face expressions, reduced-motion and offscreen pausing verified on public page
+- [x] Add real direct-OpenAI plate analysis, correction review, component nutrition, confirmed existing diary writes and photo-backed Meal Book approval; live OpenAI response validated
+- [x] Test nutrition, confirmation, owner derivation and concurrent duplicate prevention: 30 tests pass; isolated scanner UI checks pass for uploads, corrections, save buttons, recipe approval, edit/delete confirmation and failure states
+- [ ] Verify scanner writes/readback, recipe photo storage, daily totals, permissions and undo end-to-end as a signed-in user — BLOCKED: hosted database/auth is paused; isolated tests are not production verification
+- [ ] Verify physical phone camera access and device read-aloud — BLOCKED: requires an Android/iPhone; mouth motion currently follows speech activity, not phoneme-level lip sync
 - [x] Add manifest-only home-screen installation, matching Lily icons and Android/iPhone help; Chrome reports zero manifest/installability errors, icon delivery and mobile help verified, HTTPS confirmed, 20 tests pass
 - [ ] Verify published Android/iPhone home-screen installation and signed-in Settings help — BLOCKED: needs next publish and physical phone checks; session mint unavailable during this pass
 - [x] Add persistent floating Lily using the existing conversation, page-aware suggestions, and safe phone placement; verified authenticated opening, closing, draft continuity, retained history/photos, and no duplicate on Talk
@@ -12,7 +14,7 @@
 - [x] Personal Meal Book in Discover; recipe page shows photo + equipment
 - [x] Planner uses household recipes (same recipe list, same rules)
 - [x] Conversation + pictures persist until "Close conversation" (live-tested after reload)
-- [ ] Live test: plan a Meal Book recipe, rotation, record add/edit/delete, Undo — BLOCKED: workspace AI credits ran out mid-test
+- [ ] Live test: plan a Meal Book recipe, rotation, record add/edit/delete, Undo — BLOCKED: hosted database/auth is paused
 - [x] Lily creates, edits (incl. ingredient swaps, equipment) and deletes her own Discover recipes; deletes are confirmed, kept for cooked history, never planned again; undoable
-- [ ] Live test of Lily recipe create/edit/delete — BLOCKED: OpenAI account needs credit
+- [ ] Live test of Lily recipe create/edit/delete — BLOCKED: hosted database/auth is paused; direct OpenAI photo call succeeded during this pass
 - [x] Phone or username + PIN sign-in; mobile More menu with all sections + Log out; back button; Discover/Settings in nav; full signed-in page sweep (phone + laptop, no errors)
