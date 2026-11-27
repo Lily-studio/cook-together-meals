@@ -184,7 +184,7 @@ function HomeHub() {
             </Link>
           </div>
           <div className="w-[128px] shrink-0 self-end sm:w-[160px]">
-            <LilyFull mood="welcome" />
+            <LilyFull mood="presenting" />
           </div>
 
         </div>

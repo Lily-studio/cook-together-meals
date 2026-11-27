@@ -45,7 +45,7 @@ function MonthPage() {
     <AppShell
       title="My month"
       subtitle={monthLabel}
-      mood="thinking"
+      mood="planning"
       right={<PlanMonthButton size="sm" label={plannedDays ? "Replan" : "Plan"} reshuffle={plannedDays > 0} className="h-9 px-3 text-[12px]" />}
       aside={
         <Card>

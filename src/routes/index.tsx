@@ -112,7 +112,7 @@ function Landing() {
           <div className="landing-orbit landing-orbit-one" aria-hidden />
           <div className="landing-orbit landing-orbit-two" aria-hidden />
           <div className="landing-hero-frame relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-card/80 bg-secondary shadow-hero sm:rounded-[2.5rem]">
-            <LilyCharacter mood="welcome" className="landing-lily-rig" />
+            <LilyCharacter mood="standing" className="landing-lily-rig" />
             <div className="landing-photo-shade absolute inset-0" aria-hidden />
             <div className="absolute inset-x-5 bottom-5 rounded-2xl border border-card/50 bg-card/75 p-4 shadow-lift backdrop-blur-md sm:inset-x-7 sm:bottom-7 sm:p-5">
               <p className="text-[10px] font-bold text-caramel uppercase">Tonight, sorted</p>

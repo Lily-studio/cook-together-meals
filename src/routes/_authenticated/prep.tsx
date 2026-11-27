@@ -94,7 +94,7 @@ function Prep() {
     <AppShell
       title="Prep ahead"
       subtitle="Cook once, eat well all week"
-      mood="relaxed"
+      mood="chopping"
       aside={
         <Card>
           <p className="font-display text-[16px] font-semibold">Lily's Sunday rhythm</p>

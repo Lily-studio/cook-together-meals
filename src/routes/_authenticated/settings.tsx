@@ -386,7 +386,7 @@ function SettingsPage() {
 
   return (
     <AppShell title="My details" subtitle="Everything Lily plans around" mood="thinking">
-      <LilySays mood="thinking">
+      <LilySays mood="focused">
         Change your weight or how active you are whenever it shifts — I'll keep your plan sensible, never
         crash-diet strict.
       </LilySays>

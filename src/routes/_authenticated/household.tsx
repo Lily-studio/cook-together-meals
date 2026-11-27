@@ -541,7 +541,7 @@ function HouseholdPage() {
 
   return (
     <AppShell title="My household" subtitle="Everyone who eats here 🌼" mood="welcome">
-      <LilySays mood="welcome">
+      <LilySays mood="encouraging">
         One kitchen, as many people as you like — each with their own goals. Tell me who's eating, who's
         visiting and when you're out, and I'll only change the meals it touches.
       </LilySays>

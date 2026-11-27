@@ -54,7 +54,7 @@ function WeekPage() {
     <AppShell
       title="My week"
       subtitle="One kitchen. One meal. Two goals."
-      mood="thinking"
+      mood="planning"
       right={<PlanMonthButton size="sm" label="Replan" reshuffle className="h-9 px-3 text-[12px]" />}
     >
       <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
