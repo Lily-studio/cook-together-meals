@@ -20,6 +20,7 @@ import { MealCost } from "@/components/meal-cost";
 import { MealFeedbackRow } from "@/components/meal-feedback";
 import { RecipePicker } from "@/components/recipe-picker";
 import { ServingCalculatorButton } from "@/components/serving-calculator";
+import { RecipePhoto } from "@/components/recipe-photo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   useAddLog,
@@ -187,11 +188,17 @@ export function MealCard({
 
 
   return (
-    <Card className="relative">
+    <Card className="meal-card relative overflow-hidden border border-border/60 p-3.5 sm:p-4">
       <div className="flex items-start gap-3">
-        <span className="text-2xl leading-none" aria-hidden>
-          {recipe?.emoji ?? SLOT_EMOJI[slot]}
-        </span>
+        {recipe ? (
+          <Link to="/recipes/$slug" params={{ slug: recipe.slug }} className="shrink-0" aria-label={`Open ${recipe.title}`}>
+            <RecipePhoto recipe={recipe} className="size-20 rounded-2xl shadow-soft sm:size-24" />
+          </Link>
+        ) : (
+          <span className="grid size-20 shrink-0 place-items-center rounded-2xl bg-butter/35 text-3xl leading-none" aria-hidden>
+            {SLOT_EMOJI[slot]}
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
             {SLOT_LABELS[slot]}

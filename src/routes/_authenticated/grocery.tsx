@@ -15,6 +15,7 @@ import { isoDate, startOfWeek, weekDates } from "@/lib/nutrition";
 import { GROCERY_ORDER, buildGroceryList } from "@/lib/planner";
 import { shoppingMission } from "@/lib/quick";
 import { cn } from "@/lib/utils";
+import marketGroceries from "@/assets/food/market-groceries.webp.asset.json";
 
 export const Route = createFileRoute("/_authenticated/grocery")({
   head: () => ({
@@ -158,7 +159,14 @@ function GroceryPage() {
         )
       }
     >
-      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
+      <section className="grocery-hero" aria-label="Your weekly market shop">
+        <img src={marketGroceries.url} alt="A basket of fresh vegetables, herbs, bread and pantry staples" className="h-full w-full object-cover" />
+        <div className="grocery-hero-copy">
+          <p className="text-[10px] font-bold uppercase">From your plan to your basket</p>
+          <p className="mt-1 font-display text-2xl font-semibold">One calm shop. Every meal.</p>
+        </div>
+      </section>
+      <div className="mt-4 -mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
         {weeks.map((w, i) => (
           <button
             key={i}
@@ -255,7 +263,7 @@ function GroceryPage() {
           </button>
           <div className="mt-4 grid gap-4">
             {grouped.map((group) => (
-              <div key={group.cat}>
+              <div key={group.cat} className="grocery-group">
                 <p className="mb-0.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
                   {AISLES[group.cat] ?? group.cat}
                 </p>
@@ -264,7 +272,7 @@ function GroceryPage() {
                 ) : null}
                 <ul className="grid gap-1.5">
                   {group.rows.map((item) => (
-                    <li key={item.id} className="flex items-center gap-3 rounded-2xl bg-card p-3 shadow-soft">
+                    <li key={item.id} className="grocery-item flex items-center gap-3 rounded-2xl border border-border/55 bg-card p-3 shadow-soft">
                       <Checkbox
                         checked={item.checked}
                         onCheckedChange={(v) => toggle.mutate({ id: item.id, checked: Boolean(v) })}

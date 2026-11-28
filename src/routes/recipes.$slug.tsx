@@ -4,6 +4,7 @@ import { ArrowLeft, ChefHat, Clock, Users } from "lucide-react";
 import { LilyBeside, LilySays } from "@/components/lily";
 import { useApp } from "@/components/app-context";
 import { CookingMode } from "@/components/cooking-mode";
+import { RecipePhoto } from "@/components/recipe-photo";
 import { MealCost } from "@/components/meal-cost";
 import { Button } from "@/components/ui/button";
 import { useRecipe } from "@/lib/db";
@@ -51,9 +52,7 @@ function RecipePage() {
           <p className="mt-8 text-sm text-muted-foreground">That recipe isn't in Lily's book.</p>
         ) : (
           <>
-            {recipe.image_url ? (
-              <img src={recipe.image_url} alt={recipe.title} className="mt-5 aspect-[4/3] w-full rounded-3xl object-cover shadow-soft" />
-            ) : null}
+            <RecipePhoto recipe={recipe} eager className="mt-5 aspect-[16/10] w-full rounded-[2rem] shadow-lift" />
             {recipe.equipment?.length ? (
               <p className="mt-3 text-[12.5px] text-muted-foreground">Equipment: {recipe.equipment.join(", ")}</p>
             ) : null}

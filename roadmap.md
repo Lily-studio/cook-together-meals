@@ -1,4 +1,7 @@
 # Roadmap
+- [ ] Remove the visible crop rectangle around homepage Lily and improve the existing artwork's clarity without changing her face
+- [ ] Continue the approved visual redesign across recipe cards, Today/Week/Month meal plans, Discover, Meal Book, scanner and groceries without changing behavior
+- [ ] Add reusable food photography with accessible fallbacks and verify phone/desktop layouts
 - [x] Resume saved implementation without rebuilding or publishing; current build reports OK
 - [x] Reuse one reference-based illustrated cut-out Lily rig across surfaces; independent neck/arm/hair motion, face expressions, reduced-motion and offscreen pausing verified on public page
 - [x] Add real direct-OpenAI plate analysis, correction review, component nutrition, confirmed existing diary writes and photo-backed Meal Book approval; live OpenAI response validated

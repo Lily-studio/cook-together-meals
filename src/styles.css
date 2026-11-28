@@ -596,3 +596,123 @@ body:has([role="dialog"]):not(:has(.lily-panel[role="dialog"])) .lily-floating-d
   .lily-floating-dock, .lily-floating-character, .lily-panel { animation: none; }
   .lily-floating-trigger { transition: none; }
 }
+
+/* Photo-led recipe and planning surfaces, sharing the landing page's warm depth. */
+.landing-lily-rig .lily-rig-frame {
+  mix-blend-mode: normal;
+  -webkit-mask-image: none;
+  mask-image: none;
+  filter: contrast(1.025) saturate(1.02);
+  image-rendering: auto;
+}
+
+.recipe-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--border) 72%, transparent);
+  border-radius: 1.75rem;
+  background: var(--card);
+  box-shadow: 0 1px 1px color-mix(in oklab, var(--card) 88%, transparent) inset, var(--shadow-soft);
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 350ms ease, border-color 350ms ease;
+}
+
+.recipe-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in oklab, var(--caramel) 24%, var(--border));
+  box-shadow: var(--shadow-lift);
+}
+
+.recipe-photo::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--card) 42%, transparent) inset;
+}
+
+.recipe-photo img {
+  transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.group:hover .recipe-photo img {
+  transform: scale(1.035);
+}
+
+.meal-card {
+  box-shadow: 0 1px 1px color-mix(in oklab, var(--card) 88%, transparent) inset, var(--shadow-soft);
+}
+
+.meal-card .recipe-photo {
+  border: 1px solid color-mix(in oklab, var(--card) 72%, transparent);
+}
+
+.month-day-card {
+  box-shadow: 0 1px 1px color-mix(in oklab, var(--card) 88%, transparent) inset, var(--shadow-soft);
+}
+
+.meal-book {
+  background-image: linear-gradient(145deg, color-mix(in oklab, var(--butter) 12%, var(--card)), var(--card) 58%);
+}
+
+.grocery-hero {
+  position: relative;
+  height: 11rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  border-radius: 1.75rem;
+  background: var(--secondary);
+  box-shadow: var(--shadow-soft);
+}
+
+.grocery-hero::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(to top, color-mix(in oklab, var(--foreground) 78%, transparent), transparent 72%);
+}
+
+.grocery-hero-copy {
+  position: absolute;
+  z-index: 1;
+  right: 1.25rem;
+  bottom: 1.15rem;
+  left: 1.25rem;
+  color: var(--primary-foreground);
+}
+
+.grocery-group {
+  border-radius: 1.5rem;
+}
+
+.grocery-item {
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.grocery-item:hover {
+  transform: translateX(2px);
+  border-color: color-mix(in oklab, var(--caramel) 24%, var(--border));
+}
+
+.scan-plate-header {
+  background-image: linear-gradient(135deg, color-mix(in oklab, var(--butter) 35%, var(--card)), color-mix(in oklab, var(--secondary) 72%, var(--card)));
+}
+
+.scan-photo-actions {
+  background-image: radial-gradient(color-mix(in oklab, var(--caramel) 10%, transparent) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.plate-review {
+  box-shadow: 0 1px 1px color-mix(in oklab, var(--card) 65%, transparent) inset;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recipe-card,
+  .recipe-photo img,
+  .grocery-item {
+    transition: none;
+  }
+}

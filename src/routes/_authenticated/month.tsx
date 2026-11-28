@@ -4,6 +4,7 @@ import { AppShell, Card, SectionTitle } from "@/components/app-shell";
 import { useApp } from "@/components/app-context";
 import { LilySays } from "@/components/lily";
 import { PlanMonthButton } from "@/components/plan-month-button";
+import { RecipePhoto } from "@/components/recipe-photo";
 import { usePlan } from "@/lib/db";
 import { isoDate, startOfWeek, dayLabel } from "@/lib/nutrition";
 import { monthDates } from "@/lib/month-plan";
@@ -86,7 +87,7 @@ function MonthPage() {
                   to="/today"
                   search={{ date: iso }}
                   className={cn(
-                    "flex items-center gap-3 rounded-2xl bg-card p-3 shadow-soft transition-colors hover:bg-butter/30",
+                    "month-day-card flex items-center gap-3 rounded-[1.35rem] border border-border/60 bg-card p-2.5 shadow-soft transition-all hover:-translate-y-0.5 hover:bg-butter/30",
                     iso === todayIso && "ring-2 ring-caramel",
                   )}
                 >
@@ -94,9 +95,11 @@ function MonthPage() {
                     <span className="text-[10px] font-semibold uppercase text-caramel">{dayLabel(d)}</span>
                     <span className="font-display text-base leading-none font-semibold">{d.getDate()}</span>
                   </div>
-                  <span className="text-2xl" aria-hidden>
-                    {dinner?.emoji ?? "🌼"}
-                  </span>
+                  {dinner ? (
+                    <RecipePhoto recipe={dinner} className="size-14 shrink-0 rounded-xl" />
+                  ) : (
+                    <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-butter/35 text-2xl" aria-hidden>🌼</span>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-semibold">
                       {dinner?.title ?? "Not planned yet"}

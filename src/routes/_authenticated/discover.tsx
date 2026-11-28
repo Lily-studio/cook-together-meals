@@ -1,17 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Globe2, Heart, Search, Sparkles } from "lucide-react";
+import { BookOpen, Globe2, Search, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/app-shell";
 import { useApp } from "@/components/app-context";
 import { Chip } from "@/components/macro";
 import { LilySays } from "@/components/lily";
+import { RecipeCard, RecipeCardGrid } from "@/components/recipe-card";
+import { RecipePhoto } from "@/components/recipe-photo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useFavorites, usePlan, useRecipes, useSetPlanEntry, useToggleFavorite, type Recipe } from "@/lib/db";
 import { portionsFor, restrictionsFor, recipeAllowed } from "@/lib/planner";
 import { isoDate } from "@/lib/nutrition";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/discover")({
   head: () => ({
@@ -143,7 +144,8 @@ function Discover() {
           <p className="font-display text-[16px] font-semibold">Discover something new</p>
         </div>
         {surprise ? (
-          <div className="mt-2">
+          <div className="mt-3">
+            <RecipePhoto recipe={surprise} className="mb-3 aspect-[16/8] rounded-2xl" />
             <p className="text-[13px]">
               <span aria-hidden>{surprise.emoji}</span>{" "}
               <span className="font-semibold">{surprise.title}</span> — {surprise.cuisine}. {surprise.tagline}
@@ -208,22 +210,22 @@ function Discover() {
         ))}
       </div>
 
-      <div className="mt-4 grid gap-3">
-        {list.map((rec) => {
-          const fav = favOf(rec.id);
-          return (
-            <Card key={rec.id} className="flex items-center gap-3">
-              <span className="text-3xl" aria-hidden>
-                {rec.emoji}
-              </span>
-              <Link to="/recipes/$slug" params={{ slug: rec.slug }} className="min-w-0 flex-1">
-                <p className="truncate font-display text-[16px] font-semibold">{rec.title}</p>
-                <p className="truncate text-[12px] text-muted-foreground">
-                  {rec.calories} kcal · {rec.protein}g protein · {rec.prep_minutes + rec.cook_minutes} min
-                </p>
-              </Link>
-              <button
-                onClick={() => {
+      <div className="mt-5">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold text-caramel uppercase">Lily's recipe shelf</p>
+            <h2 className="mt-1 font-display text-2xl font-semibold">{list.length} ideas for your table</h2>
+          </div>
+        </div>
+        <RecipeCardGrid>
+          {list.map((rec) => {
+            const fav = favOf(rec.id);
+            return (
+              <RecipeCard
+                key={rec.id}
+                recipe={rec}
+                favorite={Boolean(fav)}
+                onFavorite={() => {
                   if (!me || !householdId) return;
                   toggleFavorite.mutate(
                     {
@@ -235,14 +237,10 @@ function Discover() {
                     { onSuccess: () => toast.success(fav ? "Removed from favourites" : "Saved to favourites") },
                   );
                 }}
-                aria-label={fav ? `Unfavourite ${rec.title}` : `Favourite ${rec.title}`}
-                className="shrink-0 text-muted-foreground transition-colors hover:text-terracotta"
-              >
-                <Heart className={cn("size-5", fav && "fill-terracotta text-terracotta")} />
-              </button>
-            </Card>
-          );
-        })}
+              />
+            );
+          })}
+        </RecipeCardGrid>
         {list.length === 0 ? (
           <Card>
             <p className="text-[13px] text-muted-foreground">Nothing matches that search yet.</p>
@@ -255,41 +253,28 @@ function Discover() {
 
 function MealBook({ recipes }: { recipes: Recipe[] }) {
   return (
-    <Card className="mt-3">
-      <p className="font-display text-[17px] font-semibold">📖 My Meal Book</p>
+    <section className="meal-book mt-4 rounded-[2rem] border border-border/70 bg-card p-4 shadow-soft sm:p-5" aria-labelledby="meal-book-title">
+      <div className="flex items-center gap-3">
+        <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-butter/50 text-caramel"><BookOpen className="size-5" /></span>
+        <div>
+          <p className="text-[10px] font-bold text-caramel uppercase">Made from your own pictures</p>
+          <h2 id="meal-book-title" className="font-display text-xl font-semibold">My Meal Book</h2>
+        </div>
+      </div>
       {recipes.length ? (
         <>
-          <p className="mt-0.5 text-[12px] text-muted-foreground">
-            Your own recipes from your pictures — Lily plans them into your meals too.
+          <p className="mt-2 text-[12.5px] leading-5 text-muted-foreground">
+            Your own recipes, ready for Lily to plan into your meals too.
           </p>
-          <div className="mt-3 grid grid-cols-2 gap-2.5">
-            {recipes.map((r) => (
-              <Link
-                key={r.id}
-                to="/recipes/$slug"
-                params={{ slug: r.slug }}
-                className="overflow-hidden rounded-2xl bg-secondary/50 shadow-soft transition-transform hover:-translate-y-0.5"
-              >
-                {r.image_url ? (
-                  <img src={r.image_url} alt={r.title} className="aspect-[4/3] w-full object-cover" loading="lazy" />
-                ) : (
-                  <div className="grid aspect-[4/3] place-items-center text-4xl">{r.emoji}</div>
-                )}
-                <div className="p-2">
-                  <p className="text-[13px] font-semibold leading-tight">{r.title}</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {r.calories} kcal · {r.protein} g protein · {r.prep_minutes + r.cook_minutes} min
-                  </p>
-                </div>
-              </Link>
-            ))}
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {recipes.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} />)}
           </div>
         </>
       ) : (
-        <p className="mt-1 text-[12.5px] text-muted-foreground">
+        <p className="mt-3 rounded-2xl bg-secondary/55 p-4 text-[12.5px] leading-5 text-muted-foreground">
           Send Lily food pictures in Talk to Lily and she'll turn them into your own recipes here.
         </p>
       )}
-    </Card>
+    </section>
   );
 }

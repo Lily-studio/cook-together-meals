@@ -14,7 +14,7 @@ import chopping from "@/assets/lily-sheet/chopping.webp.asset.json";
 import stirring from "@/assets/lily-sheet/stirring.webp.asset.json";
 import tagine from "@/assets/lily-sheet/tagine.webp.asset.json";
 import laptop from "@/assets/lily-sheet/laptop.webp.asset.json";
-import front from "@/assets/lily-sheet/front.webp.asset.json";
+import front from "@/assets/lily-sheet/front-cutout.png.asset.json";
 import { cn } from "@/lib/utils";
 
 export type CharacterMood =
